@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import csv from 'csv-parser';
 import crypto from 'crypto';
 import multer from 'multer';
 import fs from 'fs';
@@ -38,6 +39,18 @@ app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request
         return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
     }
     const id = req.file.filename.replace('.csv', '');
+
+    const unfilteredPrescriptions: any[] = [];
+
+    fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on("data", (row) => {
+            unfilteredPrescriptions.push(row); // row is already a JSON object
+        })
+        .on("end", () => {
+            console.log("CSV file successfully processed");
+            console.log(unfilteredPrescriptions);
+        });
 
     const response = {
         upload_id: id,
