@@ -4,6 +4,8 @@
   "description": "url do desafio: [https://github.com/brunolobo-mevo/](https://github.com/brunolobo-mevo/dGVzdGU6bWV2b2JhY2tlbmQ/blob/main/README.md)",
   "main": "index.js",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/gftf2011/mevo-challenge/issues"
   },
-  "homepage": "https://github.com/gftf2011/mevo-challenge#readme"
+  "homepage": "https://github.com/gftf2011/mevo-challenge#readme",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
 }
