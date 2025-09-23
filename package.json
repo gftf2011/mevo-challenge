@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,8 +21,14 @@
   "homepage": "https://github.com/gftf2011/mevo-challenge#readme",
   "type": "module",
   "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.5.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
   }
 }
