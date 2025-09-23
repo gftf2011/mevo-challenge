@@ -82,7 +82,7 @@ export class PrescriptionEntity extends Entity {
         return this._notes;
     }
 
-    public static async create(props: Props): Promise<PrescriptionEntity> {
+    public static create(props: Props): PrescriptionEntity {
         return new PrescriptionEntity(props);
     }
 

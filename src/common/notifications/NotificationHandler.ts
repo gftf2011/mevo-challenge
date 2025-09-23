@@ -11,6 +11,10 @@ export class NotificationHandler implements ValidationHandler {
         return new NotificationHandler([error]);
     }
 
+    static createEmpty(): NotificationHandler {
+        return new NotificationHandler([]);
+    }
+
     public appendError(error: Error): ValidationHandler {
         this.errors.push(error);
         return this;
