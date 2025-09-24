@@ -1,5 +1,5 @@
-import { PrescriptionRepository } from "../../domain/repositories/PrescriptionRepository.js";
-import { PrescriptionEntity } from "../../domain/entities/PrescriptionEntity.js";
+import { PrescriptionRepository } from "../../domain/repositories/PrescriptionRepository";
+import { PrescriptionEntity } from "../../domain/entities/PrescriptionEntity";
 
 export class InMemoryPrescriptionRepository implements PrescriptionRepository<PrescriptionEntity> {
     private static instance: InMemoryPrescriptionRepository;

@@ -1,6 +1,6 @@
-import { UseCase } from "../../common/use-cases/UseCase.js";
-import { UploadStatusEntity } from "../domain/entities/UploadStatusEntity.js";
-import { UploadStatusRepository } from "../domain/repositories/UploadStatusRepository.js";
+import { UseCase } from "../../common/use-cases/UseCase";
+import { UploadStatusEntity } from "../domain/entities/UploadStatusEntity";
+import { UploadStatusRepository } from "../domain/repositories/UploadStatusRepository";
 
 export type Input = {
     upload_id: string;
@@ -31,7 +31,7 @@ export class StartUploadUseCase implements UseCase<Input, Output> {
 
         uploadStatus.updateStatus('processing');
 
-        await this.uploadStatusRepository.create(uploadStatus);
+        await this.uploadStatusRepository.update(uploadStatus);
 
         return {
             upload_id: uploadStatus.upload_id,

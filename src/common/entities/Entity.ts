@@ -1,4 +1,4 @@
-import { ValidationHandler } from "../validation/ValidationHandler.js";
+import { ValidationHandler } from "../validation/ValidationHandler";
 
 export abstract class Entity {
     protected constructor(private readonly _id: string) {}

@@ -1,5 +1,5 @@
-import { Entity } from "../entities/Entity.js";
-import { ValidationHandler } from "./ValidationHandler.js";
+import { Entity } from "../entities/Entity";
+import { ValidationHandler } from "./ValidationHandler";
 
 export abstract class Validator {
     constructor(protected readonly entity: Entity, protected readonly handler: ValidationHandler) {}

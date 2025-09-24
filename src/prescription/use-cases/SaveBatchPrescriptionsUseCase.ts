@@ -1,8 +1,8 @@
-import { NotificationHandler } from "../../common/notifications/NotificationHandler.js";
-import { UseCase } from "../../common/use-cases/UseCase.js";
-import { PrescriptionEntity } from "../domain/entities/PrescriptionEntity.js";
-import { PrescriptionRepository } from "../domain/repositories/PrescriptionRepository.js";
-import { PrescriptionDomainError } from "../domain/errors/PrescriptionDomainError.js";
+import { NotificationHandler } from "../../common/notifications/NotificationHandler";
+import { UseCase } from "../../common/use-cases/UseCase";
+import { PrescriptionEntity } from "../domain/entities/PrescriptionEntity";
+import { PrescriptionRepository } from "../domain/repositories/PrescriptionRepository";
+import { PrescriptionDomainError } from "../domain/errors/PrescriptionDomainError";
 
 export type Input = {
     current_line: number;

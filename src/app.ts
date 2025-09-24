@@ -4,8 +4,8 @@ import crypto from 'crypto';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import { InMemoryPrescriptionRepository } from './prescription/infra/repositories/InMemoryPrescriptionRepository.js';
-import { SaveBatchPrescriptionsUseCase } from './prescription/use-cases/SaveBatchPrescriptionsUseCase.js';
+import { InMemoryPrescriptionRepository } from './prescription/infra/repositories/InMemoryPrescriptionRepository';
+import { SaveBatchPrescriptionsUseCase } from './prescription/use-cases/SaveBatchPrescriptionsUseCase';
 
 const app = express();
 app.use(express.json());

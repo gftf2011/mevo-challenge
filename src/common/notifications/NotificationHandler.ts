@@ -1,4 +1,4 @@
-import { ValidationHandler } from "../validation/ValidationHandler.js";
+import { ValidationHandler } from "../validation/ValidationHandler";
 
 export class NotificationHandler implements ValidationHandler {
     private constructor(private readonly errors: Error[]) {}

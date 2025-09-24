@@ -1,6 +1,5 @@
-import { Entity } from "../../../common/entities/Entity.js";
-import { ValidationHandler } from "../../../common/validation/ValidationHandler.js";
-import { UpdateStatusValidator } from "../validation/UpdateStatusValidator.js";
+import { Entity } from "../../../common/entities/Entity";
+import { ValidationHandler } from "../../../common/validation/ValidationHandler";
 
 export type Props = {
     id: string;
@@ -105,8 +104,8 @@ export class UploadStatusEntity extends Entity {
         return this._errors;
     }
 
-    public validate(validationHandler: ValidationHandler): void {
-        new UpdateStatusValidator(this, validationHandler).validate();
+    public validate(_: ValidationHandler): void {
+        return;
     }
 
     public toJSON() {

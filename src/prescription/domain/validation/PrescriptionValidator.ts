@@ -1,7 +1,7 @@
-import { ValidationHandler } from "../../../common/validation/ValidationHandler.js";
-import { Validator } from "../../../common/validation/Validator.js";
-import { PrescriptionEntity } from "../entities/PrescriptionEntity.js";
-import { PrescriptionDomainError } from "../errors/PrescriptionDomainError.js";
+import { ValidationHandler } from "../../../common/validation/ValidationHandler";
+import { Validator } from "../../../common/validation/Validator";
+import { PrescriptionEntity } from "../entities/PrescriptionEntity";
+import { PrescriptionDomainError } from "../errors/PrescriptionDomainError";
 
 export class PrescriptionValidator extends Validator {
 

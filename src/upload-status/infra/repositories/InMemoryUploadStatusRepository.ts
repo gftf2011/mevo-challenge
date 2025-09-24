@@ -1,5 +1,5 @@
-import { UploadStatusRepository } from "../../domain/repositories/UploadStatusRepository.js";
-import { UploadStatusEntity } from "../../domain/entities/UploadStatusEntity.js";
+import { UploadStatusRepository } from "../../domain/repositories/UploadStatusRepository";
+import { UploadStatusEntity } from "../../domain/entities/UploadStatusEntity";
 
 export class InMemoryUploadStatusRepository implements UploadStatusRepository<UploadStatusEntity> {
     private static instance: InMemoryUploadStatusRepository;

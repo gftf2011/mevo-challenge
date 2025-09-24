@@ -1,6 +1,6 @@
-import { Entity } from "../../../common/entities/Entity.js";
-import { ValidationHandler } from "../../../common/validation/ValidationHandler.js";
-import { PrescriptionValidator } from "../validation/PrescriptionValidator.js";
+import { Entity } from "../../../common/entities/Entity";
+import { ValidationHandler } from "../../../common/validation/ValidationHandler";
+import { PrescriptionValidator } from "../validation/PrescriptionValidator";
 
 export type Props = {
     id: string;

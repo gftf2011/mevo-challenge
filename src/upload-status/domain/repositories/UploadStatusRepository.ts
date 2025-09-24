@@ -1,4 +1,4 @@
-import { UploadStatusEntity } from "../entities/UploadStatusEntity.js";
+import { UploadStatusEntity } from "../entities/UploadStatusEntity";
 
 export interface UploadStatusRepository<T extends UploadStatusEntity> {
     create(entity: T): Promise<void>;
