@@ -60,6 +60,15 @@ Como o sistema irá lidar com um grande volume de escritas e de "arquivos grande
 
 Para permitir uma utilização mais otimizada dos recursos da aplicação serão usados child_process para rodar o processamento em background para deixar a thread principalm livre e possibilitar processamento maior de arquivos em paralelo.
 
+### Utilização do "elasticsearch"
+
+Para utilização do elasticsearch justificativas:
+
+- Acesso a bulk insert, o que é prioritário dado a cenário de procesamento em batch
+- Alta disponibilidade e acesso a integração com AWS OpenSearch permitindo integração com projetos nativos da AWS
+- Possibilidade de reescrita de dados já existentes, dado ao cenário de falha caso o arquivo seja corrompido
+- Suporte a dados nào estruturados sendo que a forma como a prescrições são armazenadas pode ter variações
+
 ## Cenários
 
 ## Fluxo de arquivo com dados válidos
