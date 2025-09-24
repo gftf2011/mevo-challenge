@@ -2,6 +2,29 @@
 
 url do desafio: [https://github.com/brunolobo-mevo/](https://github.com/brunolobo-mevo/dGVzdGU6bWV2b2JhY2tlbmQ/blob/main/README.md)
 
+## Instalação
+
+Para o projeto foi utilizado Node.JS v22.19.0
+
+Rode o comando:
+```
+npm install
+```
+
+## Como rodar o projeto
+
+Para rodar use os comandos em ordem:
+
+```
+npm run build
+```
+
+```
+npm run start
+```
+
+---
+
 ## Validação dos dados - Decisões
 
 Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que cuidará de dizer se os dados são válidos ou não !
