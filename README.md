@@ -15,13 +15,23 @@ Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que c
 - [x] Verificar se Prescricao tem CÓDIGO DE UNIDADE FEDERATIVA válido
 - [x] Verificar se Prescricao tem CPF de paciente válido
 
+## Cenários
+
+## Fluxo de arquivo com dados válidos
+
+Para cenários de dados válidos o endpoint `POST - api/prescription/upload` irá processar em batchs as partes do arquivo CSV em background disponibilizando as informações conforme forem processadas !
+
+## Fluxo de arquivo com dados inválidos, ainda obedecendo aos headers do CSV
+
+Para cenários de dados inválidos o endpoint `POST - api/prescription/upload` irá processar em batchs as partes do arquivo CSV em background cada erro de validação será disponibilizado e armazenado em outro driver de dados para permitir a consulta, permitindo o processamento do batch do arquivo !
+
+<br/>
+
 ## Fluxo dos endpoints
 
 ### `POST - api/prescription/upload`
 
 Para permitir o processamento assíncrono dos dados o processamento do arquivo será feito em background, para isso será usado a parte de streams do nodejs sendo que elas são não bloqueantes. Para evitar problemas com a memória será usado um processamento em batch, então o arquivo CSV poderá ser lido em partes e processado de forma adequada sem afetar a memória !
-
-<br/>
 
 ### `GET - api/prescription/upload/:id`
 
