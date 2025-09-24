@@ -27,7 +27,7 @@ Para cenários de dados inválidos o endpoint `POST - api/prescription/upload` i
 
 ## Fluxo de arquivo corrompido
 
-
+Para cenários de arquivos corrompidos será necessário o processamento em batch será interrompido para que o usuário possa fazer o download novamente do arquivo !
 
 <br/>
 
