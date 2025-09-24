@@ -43,8 +43,8 @@ npm run start
 # Implementações
 
 - [x] Node.JS streams
-- [] elasticsearch
-- [] Node.JS child_process
+- [ ] elasticsearch
+- [ ] Node.JS child_process
 
 ## Decisões Técnicas
 
