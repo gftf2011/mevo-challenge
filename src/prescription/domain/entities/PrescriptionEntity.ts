@@ -89,4 +89,20 @@ export class PrescriptionEntity extends Entity {
     public validate(validationHandler: ValidationHandler): void {
         new PrescriptionValidator(this, validationHandler).validate();
     }
+
+    public toJSON(): any {
+        return {
+            id: this.id,
+            date: this.date.toISOString(),
+            patient_cpf: this.patient_cpf,
+            doctor_crm: this.doctor_crm,
+            doctor_uf: this.doctor_uf,
+            controlled: this.controlled,
+            medication: this.medication,
+            dosage: this.dosage,
+            frequency: this.frequency,
+            duration: this.duration,
+            notes: this.notes,
+        };
+    }
 }

@@ -36,37 +36,34 @@ const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-type Report = {
+type ReportData = {
     upload_id: string,
     status: 'processing' | 'completed',
     total_records: number,
     processed_records: number,
     valid_records: number,
     errors: any[],
-    prescriptions: any[],
-}
+};
 
-const data: Map<string, Report> = new Map<string, Report>();
+const reportDB: Map<string, ReportData> = new Map<string, ReportData>();
+const prescriptionDB: Map<string, PrescriptionEntity> = new Map<string, PrescriptionEntity>();
 
 const processFile = (id: string, filepath: string): void => {
     let line = 1;
-    const report = data.get(id)!;
+    const report = reportDB.get(id)!;
 
     fs.createReadStream(filepath)
         .pipe(csv())
         .on("data", (row) => {
-            line++;
-
             const prescription = PrescriptionEntity.create(row);
             const notificationHandler = NotificationHandler.createEmpty();
 
             prescription.validate(notificationHandler);
 
             if (!notificationHandler.hasErrors()) {
-                report.prescriptions.push(prescription);
+                prescriptionDB.set(prescription.id, prescription);
                 report.valid_records++;
             } else {
-                report.processed_records++;
                 const errors = (notificationHandler.getErrors() as PrescriptionDomainError[]).map(error => ({
                     message: error.message,
                     field: error.property,
@@ -75,11 +72,12 @@ const processFile = (id: string, filepath: string): void => {
                 }));
                 report.errors.push(...errors);
             }
+            report.processed_records++;
+            report.total_records++;
+            line++;
         })
         .on("end", () => {
             report.status = 'completed';
-            console.log(report);
-            console.log("CSV file successfully processed");
         });
 };
 
@@ -88,17 +86,16 @@ app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request
         return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
     }
     const id = req.file.filename.replace('.csv', '');
-    const report: Report = {
+    const report: ReportData = {
         upload_id: id,
         status: 'processing',
         total_records: 0,
         processed_records: 0,
         valid_records: 0,
         errors: [],
-        prescriptions: [],
     };
 
-    data.set(id, report);
+    reportDB.set(id, report);
 
     processFile(id, req.file.path);
 
@@ -108,7 +105,7 @@ app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request
 app.get('/api/prescriptions/upload/:id', (req: Request, res: Response) => {
     const { id } = req.params;
     
-    return res.status(200).json({});
+    return res.status(200).json(reportDB.get(id)!);
 });
 
 const port = Number(process.env.PORT || 3000);

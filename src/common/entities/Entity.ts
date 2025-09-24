@@ -8,4 +8,6 @@ export abstract class Entity {
     }
 
     public abstract validate(validationHandler: ValidationHandler): void | Promise<void>;
+
+    public abstract toJSON(): any;
 }
