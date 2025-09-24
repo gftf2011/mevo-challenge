@@ -21,6 +21,12 @@ Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que c
 - [x] Cenário de arquivos de dados inválidos
 - [x] Cenário de arquivo corrompido
 
+# Implementações
+
+- [x] Node.JS streams
+- [] elasticsearch
+- [] Node.JS child_process
+
 ## Decisões Técnicas
 
 ### Utilização de Streams para leitura de dados
