@@ -40,7 +40,7 @@ export class UploadStatusEntity extends Entity {
         this._errors = props.errors;
     }
 
-    public static createPending(props: Props): UploadStatusEntity {
+    public static create(props: Props): UploadStatusEntity {
         return new UploadStatusEntity(props);
     }
 
