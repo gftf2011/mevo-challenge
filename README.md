@@ -15,6 +15,12 @@ Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que c
 - [x] Verificar se Prescricao tem CÓDIGO DE UNIDADE FEDERATIVA válido
 - [x] Verificar se Prescricao tem CPF de paciente válido
 
+## Validações dos fluxos - Checkpoint
+
+- [x] Cenário de arquivos de dados válidos
+- [x] Cenário de arquivos de dados inválidos
+- [x] Cenário de arquivo corrompido
+
 ## Cenários
 
 ## Fluxo de arquivo com dados válidos
