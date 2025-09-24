@@ -9,6 +9,13 @@ export class PrescriptionValidator extends Validator {
         super(entity, handler);
     }
 
+    private checkValidUF(): void {
+        const ufList = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"];
+        if (!ufList.includes(this.entity.doctor_uf)) {
+            this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_uf" can not be invalid such as - '${this.entity.doctor_uf}'`, this.entity.doctor_uf, "doctor_uf"));
+        }
+    }
+
     private checkFutureDate(): void {
         if (this.entity.date.getTime() > Date.now()) {
             this.handler.appendError(new PrescriptionDomainError(`"prescription.date" can not be in the future such as - '${this.entity.date.toISOString()}'`, this.entity.date.toISOString(), "date"));
@@ -40,6 +47,7 @@ export class PrescriptionValidator extends Validator {
     }
 
     public override validate(): void {
+        this.checkValidUF();
         this.checkFutureDate();
         this.checkDuration();
         this.checkNotes();
