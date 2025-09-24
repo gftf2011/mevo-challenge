@@ -95,7 +95,7 @@ export class PrescriptionValidator extends Validator {
         }
 
         if (
-            !checkForbiddenDocuments(this.entity.patient_cpf) ||
+            checkForbiddenDocuments(this.entity.patient_cpf) ||
             !checkLength(this.entity.patient_cpf) ||
             !checkFirstDigit(this.entity.patient_cpf) ||
             !checkSecondDigit(this.entity.patient_cpf)

@@ -4,9 +4,8 @@ import crypto from 'crypto';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import { NotificationHandler } from './common/notifications/NotificationHandler.js';
-import { PrescriptionEntity } from './prescription/domain/entities/PrescriptionEntity.js';
-import { PrescriptionDomainError } from './prescription/domain/errors/PrescriptionDomainError.js';
+import { InMemoryPrescriptionRepository } from './prescription/infra/repositories/InMemoryPrescriptionRepository.js';
+import { SaveBatchPrescriptionsUseCase } from './prescription/use-cases/SaveBatchPrescriptionsUseCase.js';
 
 const app = express();
 app.use(express.json());
@@ -46,39 +45,43 @@ type ReportData = {
 };
 
 const reportDB: Map<string, ReportData> = new Map<string, ReportData>();
-const prescriptionDB: Map<string, PrescriptionEntity> = new Map<string, PrescriptionEntity>();
+
+const makeSaveBatchPrescriptionsUseCase = (): SaveBatchPrescriptionsUseCase => {
+    const prescriptionRepository = InMemoryPrescriptionRepository.create();
+    return new SaveBatchPrescriptionsUseCase(prescriptionRepository);
+}
 
 const processFile = (id: string, filepath: string): void => {
-    let line = 1;
     const report = reportDB.get(id)!;
+    const saveBatchPrescriptionsUseCase = makeSaveBatchPrescriptionsUseCase();
 
-    fs.createReadStream(filepath)
-        .pipe(csv())
-        .on("data", (row) => {
-            const prescription = PrescriptionEntity.create(row);
-            const notificationHandler = NotificationHandler.createEmpty();
+    const batchSize = 100;
+    let current_line = 1;
+    let batch: any[] = [];
 
-            prescription.validate(notificationHandler);
+    const processBatch = async (batch: any[]) => {
+        const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
+        report.valid_records += valid_records;
+        report.processed_records += processed_records;
+        report.total_records += processed_records;
+        report.errors.push(...errors);
+        current_line += batch.length;
+    };
 
-            if (!notificationHandler.hasErrors()) {
-                prescriptionDB.set(prescription.id, prescription);
-                report.valid_records++;
-            } else {
-                const errors = (notificationHandler.getErrors() as PrescriptionDomainError[]).map(error => ({
-                    message: error.message,
-                    field: error.property,
-                    line: line,
-                    value: error.value,
-                }));
-                report.errors.push(...errors);
-            }
-            report.processed_records++;
-            report.total_records++;
-            line++;
-        })
-        .on("end", () => {
-            report.status = 'completed';
-        });
+    const stream  = fs.createReadStream(filepath).pipe(csv());
+    stream.on("data", async (row) => {
+        batch.push(row);
+        if (batch.length >= batchSize) {
+            stream.pause();
+            await processBatch(batch);
+            stream.resume();
+            batch = [];
+        }
+    });
+    stream.on("end", async () => {
+        if (batch.length > 0) await processBatch(batch);
+        report.status = 'completed';
+    });
 };
 
 app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request, res: Response) => {
