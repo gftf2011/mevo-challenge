@@ -8,7 +8,7 @@ export type Input = {
 
 export type Output = {
     upload_id: string;
-    status: 'pending' | 'processing' | 'completed';
+    status: 'pending' | 'processing' | 'completed' | 'failed';
     total_records: number;
     processed_records: number;
     valid_records: number;

@@ -4,14 +4,6 @@ import { UploadStatusRepository } from "../domain/repositories/UploadStatusRepos
 
 export type Input = {
     upload_id: string;
-    processed_records: number;
-    valid_records: number;
-    errors: {
-        message: string;
-        field: string;
-        line: number;
-        value: string;
-    }[];
 };
 
 export type Output = {
@@ -28,23 +20,16 @@ export type Output = {
     }[];
 };
 
-export class UpdateUploadStatusUseCase implements UseCase<Input, Output> {
+export class FailedUploadUseCase implements UseCase<Input, Output> {
     constructor(private readonly uploadStatusRepository: UploadStatusRepository<UploadStatusEntity>) {}
 
     public async execute(input: Input): Promise<Output> {
-        const { upload_id, processed_records, valid_records, errors } = input;
+        const { upload_id } = input;
 
         const uploadStatus = await this.uploadStatusRepository.findByUploadId(upload_id);
         if (!uploadStatus) throw new Error('Upload status does not exists');
 
-        const newTotalRecords = uploadStatus.total_records + processed_records;
-        const newProcessedRecords = uploadStatus.processed_records + processed_records;
-        const newValidRecords = uploadStatus.valid_records + valid_records;
-
-        uploadStatus.updateTotalRecords(newTotalRecords);
-        uploadStatus.updateProcessedRecords(newProcessedRecords);
-        uploadStatus.updateValidRecords(newValidRecords);
-        uploadStatus.addErrors(errors);
+        uploadStatus.updateStatus('failed');
 
         await this.uploadStatusRepository.update(uploadStatus);
 

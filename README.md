@@ -21,9 +21,13 @@ Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que c
 
 Para cenários de dados válidos o endpoint `POST - api/prescription/upload` irá processar em batchs as partes do arquivo CSV em background disponibilizando as informações conforme forem processadas !
 
-## Fluxo de arquivo com dados inválidos, ainda obedecendo aos headers do CSV
+## Fluxo de arquivo com dados inválidos
 
 Para cenários de dados inválidos o endpoint `POST - api/prescription/upload` irá processar em batchs as partes do arquivo CSV em background cada erro de validação será disponibilizado e armazenado em outro driver de dados para permitir a consulta, permitindo o processamento do batch do arquivo !
+
+## Fluxo de arquivo corrompido
+
+
 
 <br/>
 

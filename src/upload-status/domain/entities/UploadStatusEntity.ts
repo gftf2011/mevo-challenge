@@ -4,7 +4,7 @@ import { ValidationHandler } from "../../../common/validation/ValidationHandler"
 export type Props = {
     id: string;
     upload_id: string;
-    status: 'pending' | 'processing' | 'completed';
+    status: 'pending' | 'processing' | 'completed' | 'failed';
     total_records: number;
     processed_records: number;
     valid_records: number;
@@ -18,7 +18,7 @@ export type Props = {
 
 export class UploadStatusEntity extends Entity {
     private _upload_id: string;
-    private _status: 'pending' | 'processing' | 'completed';
+    private _status: 'pending' | 'processing' | 'completed' | 'failed';
     private _total_records: number;
     private _processed_records: number;
     private _valid_records: number;
@@ -43,10 +43,8 @@ export class UploadStatusEntity extends Entity {
         return new UploadStatusEntity(props);
     }
 
-    public updateStatus(status: 'pending' | 'processing' | 'completed'): UploadStatusEntity {
-        if (this._status === 'pending') this._status = status;
-        else if (this._status === 'processing' && (status !== 'pending')) this._status = status;
-        else if (this._status === 'completed' && (status !== 'pending' && status !== 'processing')) this._status = status;
+    public updateStatus(status: 'pending' | 'processing' | 'completed' | 'failed'): UploadStatusEntity {
+        this._status = status;
         return this;
     }
 
@@ -79,7 +77,7 @@ export class UploadStatusEntity extends Entity {
         return this._upload_id;
     }
 
-    public get status(): 'pending' | 'processing' | 'completed' {
+    public get status(): 'pending' | 'processing' | 'completed' | 'failed' {
         return this._status;
     }
 

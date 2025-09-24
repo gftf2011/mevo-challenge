@@ -12,6 +12,7 @@ import { FinishUploadUseCase } from './upload-status/use-cases/FinishUploadUseCa
 import { UpdateUploadStatusUseCase } from './upload-status/use-cases/UpdateUploadStatusUseCase';
 import { PrepareForUploadUseCase } from './upload-status/use-cases/PrepareForUploadUseCase';
 import { RetrieveUploadStatusUseCase } from './upload-status/use-cases/RetrieveUploadStatusUseCase';
+import { FailedUploadUseCase } from './upload-status/use-cases/FailedUploadUseCase';
 
 const app = express();
 app.use(express.json());
@@ -71,11 +72,17 @@ const makeRetrieveUploadStatusUseCase = (): RetrieveUploadStatusUseCase => {
     return new RetrieveUploadStatusUseCase(uploadStatusRepository);
 }
 
+const makeFailedUploadUseCase = (): FailedUploadUseCase => {
+    const uploadStatusRepository = InMemoryUploadStatusRepository.create();
+    return new FailedUploadUseCase(uploadStatusRepository);
+}
+
 const processFile = async (id: string, filepath: string): Promise<void> => {
     const startUploadUseCase = makeStartUploadUseCase();
     const saveBatchPrescriptionsUseCase = makeSaveBatchPrescriptionsUseCase();
     const updateUploadStatusUseCase = makeUpdateUploadStatusUseCase();
     const finishUploadUseCase = makeFinishUploadUseCase();
+    const failedUploadUseCase = makeFailedUploadUseCase();
 
     await startUploadUseCase.execute({ upload_id: id });
 
@@ -83,13 +90,18 @@ const processFile = async (id: string, filepath: string): Promise<void> => {
     let current_line = 1;
     let batch: any[] = [];
 
+    const stream  = fs.createReadStream(filepath).pipe(csv());
+
     const processBatch = async (batch: any[]) => {
-        const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
-        await updateUploadStatusUseCase.execute({ upload_id: id, valid_records, processed_records, errors });
-        current_line += batch.length;
+        try {
+            const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
+            await updateUploadStatusUseCase.execute({ upload_id: id, valid_records, processed_records, errors });
+            current_line += batch.length;
+        } catch (error) {
+            stream.emit("error", new Error("Error processing batch"));
+        }
     };
 
-    const stream  = fs.createReadStream(filepath).pipe(csv());
     stream.on("data", async (row) => {
         batch.push(row);
         if (batch.length >= batchSize) {
@@ -98,6 +110,10 @@ const processFile = async (id: string, filepath: string): Promise<void> => {
             stream.resume();
             batch = [];
         }
+    });
+    stream.on("error", async (_) => {
+        await failedUploadUseCase.execute({ upload_id: id });
+        stream.destroy();
     });
     stream.on("end", async () => {
         if (batch.length > 0) {
