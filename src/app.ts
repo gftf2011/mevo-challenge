@@ -6,6 +6,12 @@ import fs from 'fs';
 import path from 'path';
 import { InMemoryPrescriptionRepository } from './prescription/infra/repositories/InMemoryPrescriptionRepository';
 import { SaveBatchPrescriptionsUseCase } from './prescription/use-cases/SaveBatchPrescriptionsUseCase';
+import { StartUploadUseCase } from './upload-status/use-cases/StartUploadUseCase';
+import { InMemoryUploadStatusRepository } from './upload-status/infra/repositories/InMemoryUploadStatusRepository';
+import { FinishUploadUseCase } from './upload-status/use-cases/FinishUploadUseCase';
+import { UpdateUploadStatusUseCase } from './upload-status/use-cases/UpdateUploadStatusUseCase';
+import { PrepareForUploadUseCase } from './upload-status/use-cases/PrepareForUploadUseCase';
+import { RetrieveUploadStatusUseCase } from './upload-status/use-cases/RetrieveUploadStatusUseCase';
 
 const app = express();
 app.use(express.json());
@@ -35,25 +41,43 @@ const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-type ReportData = {
-    upload_id: string,
-    status: 'processing' | 'completed',
-    total_records: number,
-    processed_records: number,
-    valid_records: number,
-    errors: any[],
-};
+const makeStartUploadUseCase = (): StartUploadUseCase => {
+    const uploadStatusRepository = InMemoryUploadStatusRepository.create();
+    return new StartUploadUseCase(uploadStatusRepository);
+}
 
-const reportDB: Map<string, ReportData> = new Map<string, ReportData>();
+const makeFinishUploadUseCase = (): FinishUploadUseCase => {
+    const uploadStatusRepository = InMemoryUploadStatusRepository.create();
+    return new FinishUploadUseCase(uploadStatusRepository);
+}
+
+const makeUpdateUploadStatusUseCase = (): UpdateUploadStatusUseCase => {
+    const uploadStatusRepository = InMemoryUploadStatusRepository.create();
+    return new UpdateUploadStatusUseCase(uploadStatusRepository);
+}
+
+const makePrepareForUploadUseCase = (): PrepareForUploadUseCase => {
+    const uploadStatusRepository = InMemoryUploadStatusRepository.create();
+    return new PrepareForUploadUseCase(uploadStatusRepository);
+}
 
 const makeSaveBatchPrescriptionsUseCase = (): SaveBatchPrescriptionsUseCase => {
     const prescriptionRepository = InMemoryPrescriptionRepository.create();
     return new SaveBatchPrescriptionsUseCase(prescriptionRepository);
 }
 
-const processFile = (id: string, filepath: string): void => {
-    const report = reportDB.get(id)!;
+const makeRetrieveUploadStatusUseCase = (): RetrieveUploadStatusUseCase => {
+    const uploadStatusRepository = InMemoryUploadStatusRepository.create();
+    return new RetrieveUploadStatusUseCase(uploadStatusRepository);
+}
+
+const processFile = async (id: string, filepath: string): Promise<void> => {
+    const startUploadUseCase = makeStartUploadUseCase();
     const saveBatchPrescriptionsUseCase = makeSaveBatchPrescriptionsUseCase();
+    const updateUploadStatusUseCase = makeUpdateUploadStatusUseCase();
+    const finishUploadUseCase = makeFinishUploadUseCase();
+
+    await startUploadUseCase.execute({ upload_id: id });
 
     const batchSize = 100;
     let current_line = 1;
@@ -61,10 +85,7 @@ const processFile = (id: string, filepath: string): void => {
 
     const processBatch = async (batch: any[]) => {
         const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
-        report.valid_records += valid_records;
-        report.processed_records += processed_records;
-        report.total_records += processed_records;
-        report.errors.push(...errors);
+        await updateUploadStatusUseCase.execute({ upload_id: id, valid_records, processed_records, errors });
         current_line += batch.length;
     };
 
@@ -79,8 +100,10 @@ const processFile = (id: string, filepath: string): void => {
         }
     });
     stream.on("end", async () => {
-        if (batch.length > 0) await processBatch(batch);
-        report.status = 'completed';
+        if (batch.length > 0) {
+            await processBatch(batch);
+        }
+        await finishUploadUseCase.execute({ upload_id: id });
     });
 };
 
@@ -89,26 +112,19 @@ app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request
         return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
     }
     const id = req.file.filename.replace('.csv', '');
-    const report: ReportData = {
-        upload_id: id,
-        status: 'processing',
-        total_records: 0,
-        processed_records: 0,
-        valid_records: 0,
-        errors: [],
-    };
-
-    reportDB.set(id, report);
+    const prepareForUploadUseCase = makePrepareForUploadUseCase();
+    const response = await prepareForUploadUseCase.execute({ upload_id: id });
 
     processFile(id, req.file.path);
 
-    return res.status(201).json(report);
+    return res.status(201).json(response);
 });
 
-app.get('/api/prescriptions/upload/:id', (req: Request, res: Response) => {
+app.get('/api/prescriptions/upload/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    
-    return res.status(200).json(reportDB.get(id)!);
+    const retrieveUploadStatusUseCase = makeRetrieveUploadStatusUseCase();
+    const response = await retrieveUploadStatusUseCase.execute({ upload_id: id });
+    return res.status(200).json(response);
 });
 
 const port = Number(process.env.PORT || 3000);
