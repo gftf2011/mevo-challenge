@@ -25,10 +25,6 @@ npm run start
 
 ---
 
-## Validação dos dados - Decisões
-
-Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que cuidará de dizer se os dados são válidos ou não !
-
 ## Validação dos dados - Checkpoint
 
 - [x] Verificar se Prescricao tem duração maior que 0
