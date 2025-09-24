@@ -21,6 +21,20 @@ Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que c
 - [x] Cenário de arquivos de dados inválidos
 - [x] Cenário de arquivo corrompido
 
+## Decisões Técnicas
+
+### Utilização de Streams para leitura de dados
+
+Como o sistema irá lidar com "arquivos grandes" será necessário processar os arquivos sem travar o processamento da Thread Principal do Node.JS então para permitir a resposta as streams serão usadas para possibilitar o processamento em background.
+
+### Processamento em batch
+
+Como o sistema irá lidar com um grande volume de escritas e de "arquivos grandes" é necesário processar o arquivo em partes para não sobrecarregar a memória do processo.
+
+### Utilização de "child_process"
+
+Para permitir uma utilização mais otimizada dos recursos da aplicação serão usados child_process para rodar o processamento em background para deixar a thread principalm livre e possibilitar processamento maior de arquivos em paralelo.
+
 ## Cenários
 
 ## Fluxo de arquivo com dados válidos
