@@ -97,6 +97,7 @@ const processFile = async (id: string, filepath: string): Promise<void> => {
             const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
             await updateUploadStatusUseCase.execute({ upload_id: id, valid_records, processed_records, errors });
             current_line += batch.length;
+            console.log(`upload: ${id} - batch processed successfully`);
         } catch (error) {
             stream.emit("error", new Error("Error processing batch"));
         }
@@ -106,20 +107,24 @@ const processFile = async (id: string, filepath: string): Promise<void> => {
         batch.push(row);
         if (batch.length >= batchSize) {
             stream.pause();
+            console.log(`upload: ${id} - stream paused to batch processing`);
             await processBatch(batch);
             stream.resume();
+            console.log(`upload: ${id} - stream resumed`);
             batch = [];
         }
     });
     stream.on("error", async (_) => {
         await failedUploadUseCase.execute({ upload_id: id });
         stream.destroy();
+        console.log(`upload: ${id} - failed due to file corruption`);
     });
     stream.on("end", async () => {
         if (batch.length > 0) {
             await processBatch(batch);
         }
         await finishUploadUseCase.execute({ upload_id: id });
+        console.log(`upload: ${id} - ended successfully`);
     });
 };
 
