@@ -12,5 +12,5 @@ Para validar os dados foi criado uma entidade chamada `PrescriptionEntity` que c
 - [x] Verificar se Prescricao NÃO CONTROLADA tem duração máxima de 90 dias
 - [x] Verificar se Prescricao CONTROLADA tem duração máxima de 60 dias
 - [x] Verificar se Prescricao CONTROLADA tem notas do médico
-- [] Verificar se Prescricao tem CÓDIGO DE UNIDADE FEDERATIVA válido
-- [] Verificar se Prescricao tem CPF de paciente válido
+- [x] Verificar se Prescricao tem CÓDIGO DE UNIDADE FEDERATIVA válido
+- [x] Verificar se Prescricao tem CPF de paciente válido

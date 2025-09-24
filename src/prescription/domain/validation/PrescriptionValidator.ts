@@ -9,6 +9,101 @@ export class PrescriptionValidator extends Validator {
         super(entity, handler);
     }
 
+    private checkValidCPF(): void {
+        const checkForbiddenDocuments = (document: string): boolean => {
+            const forbiddenDocuments = ["00000000000", "11111111111", "22222222222", "33333333333", "44444444444", "55555555555", "66666666666", "77777777777", "88888888888", "99999999999"];
+            return forbiddenDocuments.includes(document);
+        }
+
+        const checkFirstDigit = (document: string): boolean => {
+            const DOCUMENT_ONLY_NUMBERS_REGEX = /^(\d{3})(\d{3})(\d{3})(\d{2})$/g;
+
+            const groups = DOCUMENT_ONLY_NUMBERS_REGEX.exec(document);
+
+            if (!groups) {
+                return false;
+            }
+
+            const value1 = groups[1];
+            const value2 = groups[2];
+            const value3 = groups[3];
+            const validationDigits = groups[4];
+
+            const num1: number = 10 * +String(value1).charAt(0);
+            const num2: number = 9 * +String(value1).charAt(1);
+            const num3: number = 8 * +String(value1).charAt(2);
+
+            const num4: number = 7 * +String(value2).charAt(0);
+            const num5: number = 6 * +String(value2).charAt(1);
+            const num6: number = 5 * +String(value2).charAt(2);
+
+            const num7: number = 4 * +String(value3).charAt(0);
+            const num8: number = 3 * +String(value3).charAt(1);
+            const num9: number = 2 * +String(value3).charAt(2);
+
+            const result =
+            ((num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9) * 10) %
+            11;
+
+            let resultString = String(result);
+            resultString = resultString.charAt(resultString.length - 1);
+
+            return +String(validationDigits).charAt(0) === +resultString;
+        };
+
+        const checkSecondDigit = (document: string): boolean => {
+            const DOCUMENT_ONLY_NUMBERS_REGEX = /^(\d{3})(\d{3})(\d{3})(\d{2})$/g;
+
+            const groups = DOCUMENT_ONLY_NUMBERS_REGEX.exec(document);
+
+            if (!groups) {
+                return false;
+            }
+
+            const value1 = groups[1];
+            const value2 = groups[2];
+            const value3 = groups[3];
+            const validationDigits = groups[4];
+
+            const num1: number = 11 * +String(value1).charAt(0);
+            const num2: number = 10 * +String(value1).charAt(1);
+            const num3: number = 9 * +String(value1).charAt(2);
+
+            const num4: number = 8 * +String(value2).charAt(0);
+            const num5: number = 7 * +String(value2).charAt(1);
+            const num6: number = 6 * +String(value2).charAt(2);
+
+            const num7: number = 5 * +String(value3).charAt(0);
+            const num8: number = 4 * +String(value3).charAt(1);
+            const num9: number = 3 * +String(value3).charAt(2);
+
+            const num10: number = 2 * +String(validationDigits).charAt(0);
+
+            const result =
+            ((num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9 + num10) *
+                10) %
+            11;
+
+            let resultString = String(result);
+            resultString = resultString.charAt(resultString.length - 1);
+
+            return +String(validationDigits).charAt(1) === +resultString;
+        }
+
+        const checkLength = (document: string): boolean => {
+            return document.length === 11;
+        }
+
+        if (
+            !checkForbiddenDocuments(this.entity.patient_cpf) ||
+            !checkLength(this.entity.patient_cpf) ||
+            !checkFirstDigit(this.entity.patient_cpf) ||
+            !checkSecondDigit(this.entity.patient_cpf)
+        ) {
+            this.handler.appendError(new PrescriptionDomainError(`"prescription.patient_cpf" can not be invalid such as - '${this.entity.patient_cpf}'`, this.entity.patient_cpf, "patient_cpf"));
+        }
+    }
+
     private checkValidUF(): void {
         const ufList = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"];
         if (!ufList.includes(this.entity.doctor_uf)) {
@@ -47,6 +142,7 @@ export class PrescriptionValidator extends Validator {
     }
 
     public override validate(): void {
+        this.checkValidCPF();
         this.checkValidUF();
         this.checkFutureDate();
         this.checkDuration();
