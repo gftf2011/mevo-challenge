@@ -40,11 +40,35 @@ npm run start
 - [x] Cenário de arquivos de dados inválidos
 - [x] Cenário de arquivo corrompido
 
-# Implementações
+## Implementações
 
 - [x] Node.JS streams
 - [ ] elasticsearch - (ainda usa db em memória)
 - [ ] Node.JS child_process
+
+## Estimativas
+
+### Armazenamento de dados
+
+> Precrições
+
+A Mevo conta com mais de `25000` farmácias, sendo que estas tem acesso aos arquivos que seriam digitalizados !
+
+Alguns dados mostram que existem até `120000` farmácias no Brasil !
+
+O armazenamento do dado deve ser armazenado por no mínimo `20 anos` contando a partir da data colocada na prescrição, de acordo com o Conselho Federal de Medicina (CFM), a Agência Nacional de Vigilância Sanitária (ANVISA) e o Ministério da Saúde !
+
+Supondo que cada farmácia tenha um arquivo com as informações de `500000` de prescrições. E quandão as prescrições dos últimos `20 anos` !
+
+Usando como base o arquivo fornecido para o teste, pode se supor que um arquivo de 200 linhas tenha em média `25KB` !
+
+Os arquivos CSV de `500000` registros devem ter em média `625MB`
+
+Cada farmácia submeteria (20 x 625MB) = `12,5GB`
+
+Contando todas as `25000` farmácias parceiras da Mevo (25000 x 12,5GB) = `312,5TB`
+
+Arredondando, seria necessário armazenar `320TB` de dados com retenção de até `20 anos` !
 
 ## Decisões Técnicas
 
