@@ -89,4 +89,24 @@ describe('PrescriptionEntity - Test Suite', () => {
         expect(notificationHandler.getErrors().length).toBe(1);
         expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.date" can not be in the future such as - '${tomorrow.toISOString()}'`, tomorrow.toISOString(), 'date'));
     });
+    
+    it('given invalid props with "duration" less than 0, when calls validate(), then should have error', () => {
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date: '2021-01-01',
+            patient_cpf: cpf.generate(false),
+            doctor_crm: '12345',
+            doctor_uf: 'SP',
+            controlled: 'False',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '-1'
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(true);
+        expect(notificationHandler.getErrors().length).toBe(1);
+        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.duration" can not be less than 0 such as - '-1'`, '-1', 'duration'));
+    });
 });
