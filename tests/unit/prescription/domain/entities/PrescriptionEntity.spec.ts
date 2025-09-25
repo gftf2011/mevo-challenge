@@ -1,0 +1,65 @@
+import { cpf } from 'cpf-cnpj-validator';
+
+import { NotificationHandler } from "../../../../../src/common/notifications/NotificationHandler";
+import { PrescriptionEntity } from "../../../../../src/prescription/domain/entities/PrescriptionEntity";
+import { PrescriptionDomainError } from '../../../../../src/prescription/domain/errors/PrescriptionDomainError';
+
+describe('PrescriptionEntity - Test Suite', () => {
+    it('given valid props, when calls validate(), then should have no errors', () => {
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date: '2021-01-01',
+            patient_cpf: cpf.generate(false),
+            doctor_crm: '12345',
+            doctor_uf: 'SP',
+            controlled: 'False',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '10'
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(false);
+    });
+
+    it('given invalid props with incorrect "patient_cpf", when calls validate(), then should have error', () => {
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date: '2021-01-01',
+            patient_cpf: '00000000000',
+            doctor_crm: '12345',
+            doctor_uf: 'SP',
+            controlled: 'False',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '10'
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(true);
+        expect(notificationHandler.getErrors().length).toBe(1);
+        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.patient_cpf" can not be invalid such as - '00000000000'`, '00000000000', 'patient_cpf'));
+    });
+
+    it('given invalid props with incorrect "doctor_uf", when calls validate(), then should have error', () => {
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date: '2021-01-01',
+            patient_cpf: cpf.generate(false),
+            doctor_crm: '12345',
+            doctor_uf: 'ZZ',
+            controlled: 'False',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '10'
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(true);
+        expect(notificationHandler.getErrors().length).toBe(1);
+        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.doctor_uf" can not be invalid such as - 'ZZ'`, 'ZZ', 'doctor_uf'));
+    });
+});
