@@ -62,4 +62,31 @@ describe('PrescriptionEntity - Test Suite', () => {
         expect(notificationHandler.getErrors().length).toBe(1);
         expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.doctor_uf" can not be invalid such as - 'ZZ'`, 'ZZ', 'doctor_uf'));
     });
+
+    it('given invalid props with future "date", when calls validate(), then should have error', () => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+        tomorrow.setUTCHours(0, 0, 0, 0);
+
+        const date = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getUTCDate()).padStart(2, '0')}`;
+
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date,
+            patient_cpf: cpf.generate(false),
+            doctor_crm: '12345',
+            doctor_uf: 'SP',
+            controlled: 'False',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '10'
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(true);
+        expect(notificationHandler.getErrors().length).toBe(1);
+        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.date" can not be in the future such as - '${tomorrow.toISOString()}'`, tomorrow.toISOString(), 'date'));
+    });
 });
