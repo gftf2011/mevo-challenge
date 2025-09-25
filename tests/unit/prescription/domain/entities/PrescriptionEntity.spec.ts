@@ -151,4 +151,24 @@ describe('PrescriptionEntity - Test Suite', () => {
         expect(notificationHandler.getErrors().length).toBe(1);
         expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.duration" can not be greater than 90 when "prescriptions.controlled" is False`, '91', 'duration'));
     });
+
+    it('given invalid props with "controlled" equals "True" and "notes" do not exists, when calls validate(), then should have error', () => {
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date: '2021-01-01',
+            patient_cpf: cpf.generate(false),
+            doctor_crm: '12345',
+            doctor_uf: 'SP',
+            controlled: 'True',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '60',
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(true);
+        expect(notificationHandler.getErrors().length).toBe(1);
+        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.notes" can not be empty when "prescriptions.controlled" is True`, "undefined", 'notes'));
+    });
 });

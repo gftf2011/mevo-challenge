@@ -52,9 +52,9 @@ npm run start
 
 > Precrições
 
-A Mevo conta com mais de `25000` farmácias, sendo que estas tem acesso aos arquivos que seriam digitalizados !
+A Mevo conta com mais de `25000` farmácias e clínicas, sendo que estas tem acesso aos arquivos que seriam digitalizados !
 
-O armazenamento do dado deve ser armazenado por no mínimo `20 anos` contando a partir da data colocada na prescrição, de acordo com o Conselho Federal de Medicina (CFM), a Agência Nacional de Vigilância Sanitária (ANVISA) e o Ministério da Saúde !
+O armazenamento do dado deve ser armazenado por no mínimo `20 anos` contando a partir da data colocada na prescrição caso faça parte do prontuário, de acordo com o Conselho Federal de Medicina (CFM), a Agência Nacional de Vigilância Sanitária (ANVISA) e o Ministério da Saúde !
 
 Supondo que cada farmácia tenha um arquivo com as informações de `500000` de prescrições. E quandão as prescrições dos últimos `20 anos` !
 
