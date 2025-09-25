@@ -54,8 +54,6 @@ npm run start
 
 A Mevo conta com mais de `25000` farmácias, sendo que estas tem acesso aos arquivos que seriam digitalizados !
 
-Alguns dados mostram que existem até `120000` farmácias no Brasil !
-
 O armazenamento do dado deve ser armazenado por no mínimo `20 anos` contando a partir da data colocada na prescrição, de acordo com o Conselho Federal de Medicina (CFM), a Agência Nacional de Vigilância Sanitária (ANVISA) e o Ministério da Saúde !
 
 Supondo que cada farmácia tenha um arquivo com as informações de `500000` de prescrições. E quandão as prescrições dos últimos `20 anos` !
