@@ -26,7 +26,7 @@ export class FailedUploadUseCase implements UseCase<Input, Output> {
     public async execute(input: Input): Promise<Output> {
         const { upload_id } = input;
 
-        const uploadStatus = await this.uploadStatusRepository.findByUploadId(upload_id);
+        const uploadStatus = await this.uploadStatusRepository.findByUploadId(upload_id, false);
         if (!uploadStatus) throw new Error('Upload status does not exists');
 
         uploadStatus.updateStatus('failed');

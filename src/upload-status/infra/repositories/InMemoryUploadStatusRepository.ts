@@ -26,7 +26,23 @@ export class InMemoryUploadStatusRepository implements UploadStatusRepository<Up
         });
     }
 
-    public async findByUploadId(uploadId: string): Promise<UploadStatusEntity | null> {
-        return this.uploadStatuses.find((uploadStatus) => uploadStatus.upload_id === uploadId) || null;
+    public async findByUploadId(uploadId: string, withErrors: boolean): Promise<UploadStatusEntity | null> {
+        const uploadStatus = this.uploadStatuses.find((uploadStatus) => uploadStatus.upload_id === uploadId) || null;
+        if (withErrors) return uploadStatus;
+        else {
+            if (uploadStatus) {
+                const newUploadStatus = UploadStatusEntity.create({
+                    id: uploadStatus.id,
+                    upload_id: uploadStatus.upload_id,
+                    status: uploadStatus.status,
+                    total_records: uploadStatus.total_records,
+                    processed_records: uploadStatus.processed_records,
+                    valid_records: uploadStatus.valid_records,
+                    errors: [],
+                });
+                return newUploadStatus;
+            }
+            return null;
+        }
     }
 }

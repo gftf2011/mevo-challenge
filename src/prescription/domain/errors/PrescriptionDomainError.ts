@@ -1,4 +1,4 @@
-import { DomainError } from "../../../common/errors/DomainError";
+import { DomainError } from "../../../common/domain/errors/DomainError";
 
 export class PrescriptionDomainError extends DomainError {
     public readonly value: string;

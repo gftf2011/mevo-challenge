@@ -36,7 +36,7 @@ export class PrepareForUploadUseCase implements UseCase<Input, Output> {
             errors: [],
         });
 
-        const foundUploadStatus = await this.uploadStatusRepository.findByUploadId(uploadStatus.upload_id);
+        const foundUploadStatus = await this.uploadStatusRepository.findByUploadId(uploadStatus.upload_id, false);
         if (foundUploadStatus) throw new Error('Upload status already exists');
 
         await this.uploadStatusRepository.create(uploadStatus);
