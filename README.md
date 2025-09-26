@@ -43,8 +43,8 @@ npm run start
 ## Implementações
 
 - [x] Node.JS streams
-- [ ] elasticsearch - (ainda usa db em memória)
-- [ ] Node.JS child_process
+- [x] elasticsearch
+- [x] Node.JS child_process
 
 ## Estimativas
 
