@@ -1,5 +1,5 @@
-import { Entity } from "../../../common/entities/Entity";
-import { ValidationHandler } from "../../../common/validation/ValidationHandler";
+import { Entity } from "../../../common/domain/entities/Entity";
+import { ValidationHandler } from "../../../common/domain/validation/ValidationHandler";
 import { PrescriptionValidator } from "../validation/PrescriptionValidator";
 
 export type Props = {

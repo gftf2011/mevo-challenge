@@ -1,5 +1,5 @@
-import { ValidationHandler } from "../../../common/validation/ValidationHandler";
-import { Validator } from "../../../common/validation/Validator";
+import { ValidationHandler } from "../../../common/domain/validation/ValidationHandler";
+import { Validator } from "../../../common/domain/validation/Validator";
 import { PrescriptionEntity } from "../entities/PrescriptionEntity";
 import { PrescriptionDomainError } from "../errors/PrescriptionDomainError";
 

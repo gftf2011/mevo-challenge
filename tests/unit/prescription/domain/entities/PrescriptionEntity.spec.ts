@@ -1,6 +1,6 @@
 import { cpf } from 'cpf-cnpj-validator';
 
-import { NotificationHandler } from "../../../../../src/common/notifications/NotificationHandler";
+import { NotificationHandler } from "../../../../../src/common/domain/notifications/NotificationHandler";
 import { PrescriptionEntity } from "../../../../../src/prescription/domain/entities/PrescriptionEntity";
 import { PrescriptionDomainError } from '../../../../../src/prescription/domain/errors/PrescriptionDomainError';
 

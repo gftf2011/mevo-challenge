@@ -1,4 +1,4 @@
-import { NotificationHandler } from "../../common/notifications/NotificationHandler";
+import { NotificationHandler } from "../../common/domain/notifications/NotificationHandler";
 import { UseCase } from "../../common/use-cases/UseCase";
 import { PrescriptionEntity } from "../domain/entities/PrescriptionEntity";
 import { PrescriptionRepository } from "../domain/repositories/PrescriptionRepository";
