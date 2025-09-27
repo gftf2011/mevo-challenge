@@ -98,7 +98,7 @@ Para utilização do elasticsearch justificativas:
 
 - Acesso a bulk insert, o que é prioritário dado a cenário de procesamento em batch
 - Alta disponibilidade e acesso a integração com AWS OpenSearch permitindo integração com projetos nativos da AWS
-- Possibilidade de reescrita de dados já existentes, dado ao cenário de falha caso o arquivo seja corrompido
+- Possibilidade de sobrescrita de dados já existentes, dado ao cenário de falha caso o arquivo seja corrompido
 - Suporte a dados nào estruturados sendo que a forma como a prescrições são armazenadas pode ter variações
 
 ## Cenários
