@@ -150,11 +150,16 @@ export class PrescriptionValidator extends Validator {
     private checkValidCRM(): void {
         if (!this.entity.doctor_crm) {
             this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be empty`, this.entity.doctor_crm, "doctor_crm"));
-        } else if (this.entity.doctor_crm.length !== 6 && this.entity.doctor_crm.length !== 7) {
-            this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be invalid length such as - '${this.entity.doctor_crm}'`, this.entity.doctor_crm, "doctor_crm"));
         } else {
-            const regex = this.entity.doctor_crm.length === 6 ? /^\d+$/ : /^P\d+$/;
-            if (!regex.test(this.entity.doctor_crm)) this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be invalid such as - '${this.entity.doctor_crm}'`, this.entity.doctor_crm, "doctor_crm"));
+            const regex = /^\d+$/;
+
+            if (!regex.test(this.entity.doctor_crm)) {
+                this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be invalid such as - '${this.entity.doctor_crm}'`, this.entity.doctor_crm, "doctor_crm"));
+            }
+
+            if (this.entity.doctor_crm.length !== 6) {
+                this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be invalid length such as - '${this.entity.doctor_crm}'`, this.entity.doctor_crm, "doctor_crm"));
+            }
         }
     }
 
