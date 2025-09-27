@@ -17,4 +17,8 @@ export class InMemoryPrescriptionRepository implements PrescriptionRepository<Pr
     async saveMany(prescriptions: PrescriptionEntity[]): Promise<void> {
         this.prescriptions.push(...prescriptions);
     }
+
+    public deleteAll(): void {
+        this.prescriptions = [];
+    }
 }
