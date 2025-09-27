@@ -85,6 +85,7 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
             stream.destroy();
             ElasticsearchConnection.getInstance().close();
             console.log(`upload: ${message.id} - failed due to file corruption`);
+            process.send?.({ type: "failed" });
         }
     };
 
@@ -94,6 +95,7 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
             await finishUploadUseCase.execute({ upload_id: message.id });
             ElasticsearchConnection.getInstance().close();
             console.log(`upload: ${message.id} - ended successfully`);
+            process.send?.({ type: "done" });
         }
     };
 

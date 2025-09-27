@@ -56,6 +56,9 @@ const backgroundJob = (id: string, filepath: string, batchSize: number) => {
         if (message.type === "done") {
           console.log("Upload completed");
           child.kill();
+        } else if (message.type === "failed") {
+          console.log("Upload failed");
+          child.kill();
         }
     });
 };
