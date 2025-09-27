@@ -94,7 +94,9 @@ export class PrescriptionValidator extends Validator {
             return document.length === 11;
         }
 
-        if (
+        if (!this.entity.patient_cpf) {
+            this.handler.appendError(new PrescriptionDomainError(`"prescription.patient_cpf" can not be empty`, this.entity.patient_cpf, "patient_cpf"));
+        } else if (
             checkForbiddenDocuments(this.entity.patient_cpf) ||
             !checkLength(this.entity.patient_cpf) ||
             !checkFirstDigit(this.entity.patient_cpf) ||
@@ -145,8 +147,20 @@ export class PrescriptionValidator extends Validator {
         }
     }
 
+    private checkValidCRM(): void {
+        if (!this.entity.doctor_crm) {
+            this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be empty`, this.entity.doctor_crm, "doctor_crm"));
+        } else if (this.entity.doctor_crm.length !== 6 && this.entity.doctor_crm.length !== 7) {
+            this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be invalid length such as - '${this.entity.doctor_crm}'`, this.entity.doctor_crm, "doctor_crm"));
+        } else {
+            const regex = this.entity.doctor_crm.length === 6 ? /^\d+$/ : /^P\d+$/;
+            if (!regex.test(this.entity.doctor_crm)) this.handler.appendError(new PrescriptionDomainError(`"prescription.doctor_crm" can not be invalid such as - '${this.entity.doctor_crm}'`, this.entity.doctor_crm, "doctor_crm"));
+        }
+    }
+
     public override validate(): void {
         this.checkValidCPF();
+        this.checkValidCRM();
         this.checkValidUF();
         this.checkFutureDate();
         this.checkDuration();

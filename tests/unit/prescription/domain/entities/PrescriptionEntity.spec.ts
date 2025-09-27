@@ -11,7 +11,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date: '2021-01-01',
             patient_cpf: cpf.generate(false),
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'SP',
             controlled: 'False',
             medication: 'Medication 1',
@@ -29,7 +29,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date: '2021-01-01',
             patient_cpf: '00000000000',
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'SP',
             controlled: 'False',
             medication: 'Medication 1',
@@ -40,7 +40,11 @@ describe('PrescriptionEntity - Test Suite', () => {
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.patient_cpf" can not be invalid such as - '00000000000'`, '00000000000', 'patient_cpf'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe(`"prescription.patient_cpf" can not be invalid such as - '00000000000'`);
+        expect(error.value).toBe("00000000000");
+        expect(error.property).toBe("patient_cpf");
     });
 
     it('given invalid props with incorrect "doctor_uf", when calls validate(), then should have error', () => {
@@ -49,7 +53,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date: '2021-01-01',
             patient_cpf: cpf.generate(false),
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'ZZ',
             controlled: 'False',
             medication: 'Medication 1',
@@ -60,7 +64,11 @@ describe('PrescriptionEntity - Test Suite', () => {
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.doctor_uf" can not be invalid such as - 'ZZ'`, 'ZZ', 'doctor_uf'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe(`"prescription.doctor_uf" can not be invalid such as - 'ZZ'`);
+        expect(error.value).toBe("ZZ");
+        expect(error.property).toBe("doctor_uf");
     });
 
     it('given invalid props with future "date", when calls validate(), then should have error', () => {
@@ -76,7 +84,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date,
             patient_cpf: cpf.generate(false),
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'SP',
             controlled: 'False',
             medication: 'Medication 1',
@@ -87,7 +95,11 @@ describe('PrescriptionEntity - Test Suite', () => {
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.date" can not be in the future such as - '${tomorrow.toISOString()}'`, tomorrow.toISOString(), 'date'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe(`"prescription.date" can not be in the future such as - '${tomorrow.toISOString()}'`);
+        expect(error.value).toBe(tomorrow.toISOString());
+        expect(error.property).toBe("date");
     });
     
     it('given invalid props with "duration" less than 0, when calls validate(), then should have error', () => {
@@ -96,7 +108,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date: '2021-01-01',
             patient_cpf: cpf.generate(false),
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'SP',
             controlled: 'False',
             medication: 'Medication 1',
@@ -107,7 +119,11 @@ describe('PrescriptionEntity - Test Suite', () => {
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.duration" can not be less than 0 such as - '-1'`, '-1', 'duration'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe("\"prescription.duration\" can not be less than 0 such as - '-1'");
+        expect(error.value).toBe("-1");
+        expect(error.property).toBe("duration");
     });
 
     it('given invalid props with "controlled" equals "True" and "duration" greater than 60, when calls validate(), then should have error', () => {
@@ -116,7 +132,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date: '2021-01-01',
             patient_cpf: cpf.generate(false),
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'SP',
             controlled: 'True',
             medication: 'Medication 1',
@@ -128,7 +144,11 @@ describe('PrescriptionEntity - Test Suite', () => {
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.duration" can not be greater than 60 when "prescriptions.controlled" is True`, '61', 'duration'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe("\"prescription.duration\" can not be greater than 60 when \"prescriptions.controlled\" is True");
+        expect(error.value).toBe("61");
+        expect(error.property).toBe("duration");
     });
 
     it('given invalid props with "controlled" equals "False" and "duration" greater than 90, when calls validate(), then should have error', () => {
@@ -137,7 +157,7 @@ describe('PrescriptionEntity - Test Suite', () => {
             id: '1',
             date: '2021-01-01',
             patient_cpf: cpf.generate(false),
-            doctor_crm: '12345',
+            doctor_crm: '123456',
             doctor_uf: 'SP',
             controlled: 'False',
             medication: 'Medication 1',
@@ -149,10 +169,38 @@ describe('PrescriptionEntity - Test Suite', () => {
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.duration" can not be greater than 90 when "prescriptions.controlled" is False`, '91', 'duration'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe("\"prescription.duration\" can not be greater than 90 when \"prescriptions.controlled\" is False");
+        expect(error.value).toBe("91");
+        expect(error.property).toBe("duration");
     });
 
     it('given invalid props with "controlled" equals "True" and "notes" do not exists, when calls validate(), then should have error', () => {
+        const notificationHandler = NotificationHandler.createEmpty();
+        const prescription = PrescriptionEntity.create({
+            id: '1',
+            date: '2021-01-01',
+            patient_cpf: cpf.generate(false),
+            doctor_crm: '123456',
+            doctor_uf: 'SP',
+            controlled: 'True',
+            medication: 'Medication 1',
+            dosage: '10mg',
+            frequency: '10mg',
+            duration: '60',
+        });
+        prescription.validate(notificationHandler);
+        expect(notificationHandler.hasErrors()).toBe(true);
+        expect(notificationHandler.getErrors().length).toBe(1);
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe("\"prescription.notes\" can not be empty when \"prescriptions.controlled\" is True");
+        expect(error.value).toBe("undefined");
+        expect(error.property).toBe("notes");
+    });
+
+    it('given invalid props with "doctor_crm" with 5 digits, when calls validate(), then should have error', () => {
         const notificationHandler = NotificationHandler.createEmpty();
         const prescription = PrescriptionEntity.create({
             id: '1',
@@ -165,10 +213,15 @@ describe('PrescriptionEntity - Test Suite', () => {
             dosage: '10mg',
             frequency: '10mg',
             duration: '60',
+            notes: 'Notes 1'
         });
         prescription.validate(notificationHandler);
         expect(notificationHandler.hasErrors()).toBe(true);
         expect(notificationHandler.getErrors().length).toBe(1);
-        expect(notificationHandler.getErrors()[0]).toEqual(new PrescriptionDomainError(`"prescription.notes" can not be empty when "prescriptions.controlled" is True`, "undefined", 'notes'));
+
+        const error = notificationHandler.getErrors()[0] as PrescriptionDomainError;
+        expect(error.message).toBe("\"prescription.doctor_crm\" can not be invalid length such as - '12345'");
+        expect(error.value).toBe("12345");
+        expect(error.property).toBe("doctor_crm");
     });
 });
