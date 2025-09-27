@@ -6,6 +6,11 @@ url do desafio: [https://github.com/brunolobo-mevo/](https://github.com/brunolob
 
 Para o projeto foi utilizado Node.JS v22.19.0
 
+### Requisitos
+- Node.JS v22.19.0
+- Docker
+- Docker Compose
+
 Rode o comando:
 ```
 npm install
@@ -14,6 +19,10 @@ npm install
 ## Como rodar o projeto
 
 Para rodar use os comandos em ordem:
+
+```
+npm run docker:up
+```
 
 ```
 npm run build
