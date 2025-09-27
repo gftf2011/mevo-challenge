@@ -1,5 +1,6 @@
 import csv from 'csv-parser';
 import fs from 'fs';
+import { Stream } from 'stream';
 
 import { ElasticsearchConnection } from './common/infra/db/ElasticsearchConnection';
 import { ElasticsearchPrescriptionRepository } from './prescription/infra/repositories/ElasticsearchPrescriptionRepository';
@@ -50,9 +51,9 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
     let current_line = 1;
     let batch: any[] = [];
 
-    const stream  = fs.createReadStream(message.filepath).pipe(csv());
+    const stream = fs.createReadStream(message.filepath).pipe(csv());
 
-    const processBatch = async (batch: any[]) => {
+    const processBatch = async (stream: Stream.Transform, batch: any[]) => {
         try {
             const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
             await updateUploadStatusUseCase.execute({ upload_id: message.id, valid_records, processed_records, errors });
@@ -64,30 +65,51 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
         }
     };
 
-    stream.on("data", async (row) => {
-        batch.push(row);
-        if (batch.length >= batchSize) {
-            stream.pause();
-            console.log(`upload: ${message.id} - stream paused to batch processing`);
-            await processBatch(batch);
-            stream.resume();
-            console.log(`upload: ${message.id} - stream resumed`);
-            batch = [];
+    const onStreamOperation = (stream: Stream.Transform) => {
+        return async (data: any): Promise<void> => {
+            batch.push(data);
+            if (batch.length >= batchSize) {
+                stream.pause();
+                console.log(`upload: ${message.id} - stream paused to batch processing`);
+                await processBatch(stream, batch);
+                stream.resume();
+                console.log(`upload: ${message.id} - stream resumed`);
+                batch = [];
+            }
         }
-    });
-    stream.on("error", async (_) => {
-        await failedUploadUseCase.execute({ upload_id: message.id });
-        stream.destroy();
-        ElasticsearchConnection.getInstance().close();
-        console.log(`upload: ${message.id} - failed due to file corruption`);
-    });
-    stream.on("end", async () => {
-        if (batch.length > 0) {
-            await processBatch(batch);
+    };
+
+    const errorStreamOperation = (stream: Stream.Transform) => {
+        return async (_error: Error): Promise<void> => {
+            await failedUploadUseCase.execute({ upload_id: message.id });
+            stream.destroy();
+            ElasticsearchConnection.getInstance().close();
+            console.log(`upload: ${message.id} - failed due to file corruption`);
         }
-        await finishUploadUseCase.execute({ upload_id: message.id });
-        ElasticsearchConnection.getInstance().close();
-        console.log(`upload: ${message.id} - ended successfully`);
+    };
+
+    const endStreamOperation = (stream: Stream.Transform) => {
+        return async (): Promise<void> => {
+            if (batch.length > 0) await processBatch(stream, batch);
+            await finishUploadUseCase.execute({ upload_id: message.id });
+            ElasticsearchConnection.getInstance().close();
+            console.log(`upload: ${message.id} - ended successfully`);
+        }
+    };
+
+    const processStream = async (stream: Stream.Transform, operations: {
+        on: (stream: Stream.Transform) => (data: any) => Promise<void>;
+        error: (stream: Stream.Transform) => (error: Error) => Promise<void>;
+        end: (stream: Stream.Transform) => () => Promise<void>;
+    }) => {
+        stream.on("data", operations.on(stream));
+        stream.on("error", operations.error(stream));
+        stream.on("end", operations.end(stream));
+    };
+
+    processStream(stream, {
+        on: onStreamOperation,
+        error: errorStreamOperation,
+        end: endStreamOperation,
     });
 });
-

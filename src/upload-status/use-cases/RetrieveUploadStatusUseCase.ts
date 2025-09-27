@@ -18,7 +18,7 @@ export type Output = {
         line: number;
         value: string;
     }[];
-};
+} | null;
 
 export class RetrieveUploadStatusUseCase implements UseCase<Input, Output> {
     constructor(private readonly uploadStatusRepository: UploadStatusRepository<UploadStatusEntity>) {}
@@ -27,7 +27,7 @@ export class RetrieveUploadStatusUseCase implements UseCase<Input, Output> {
         const { upload_id } = input;
 
         const uploadStatus = await this.uploadStatusRepository.findByUploadId(upload_id, true);
-        if (!uploadStatus) throw new Error('Upload status does not exists');
+        if (!uploadStatus) return null;
 
         return {
             upload_id: uploadStatus.upload_id,
