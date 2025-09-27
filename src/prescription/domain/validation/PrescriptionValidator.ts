@@ -118,6 +118,10 @@ export class PrescriptionValidator extends Validator {
     }
 
     private checkDuration(): void {
+        if (isNaN(this.entity.duration)) {
+            this.handler.appendError(new PrescriptionDomainError(`"prescription.duration" can not be invalid such as - '${this.entity.duration}'`, this.entity.duration.toString(), "duration"));
+        }
+
         if (this.entity.duration < 0) {
             this.handler.appendError(new PrescriptionDomainError(`"prescription.duration" can not be less than 0 such as - '${this.entity.duration}'`, this.entity.duration.toString(), "duration"));
         }
