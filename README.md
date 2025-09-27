@@ -42,6 +42,7 @@ npm run start
 - [x] Verificar se Prescricao CONTROLADA tem notas do médico
 - [x] Verificar se Prescricao tem CÓDIGO DE UNIDADE FEDERATIVA válido
 - [x] Verificar se Prescricao tem CPF de paciente válido
+- [x] Verificar se Prescricao tem CRM do médico com 6 OU 7 caracteres válidos
 
 ## Validações dos fluxos - Checkpoint
 
@@ -81,7 +82,7 @@ Arredondando, seria necessário armazenar `320TB` de dados com retenção de at�
 
 ### Utilização de Streams para leitura de dados
 
-Como o sistema irá lidar com "arquivos grandes" será necessário processar os arquivos sem travar o processamento da Thread Principal do Node.JS então para permitir a resposta as streams serão usadas para possibilitar o processamento em background.
+Como o sistema irá lidar com "arquivos grandes" será necessário ler o arquivo sob demanda para não carregar toda a informação direto na memória da aplicação !
 
 ### Processamento em batch
 
@@ -89,7 +90,7 @@ Como o sistema irá lidar com um grande volume de escritas e de "arquivos grande
 
 ### Utilização de "child_process"
 
-Para permitir uma utilização mais otimizada dos recursos da aplicação serão usados child_process para rodar o processamento em background para deixar a thread principalm livre e possibilitar processamento maior de arquivos em paralelo.
+Para permitir o processamento em background será utilizado "child_process" pra mover o processamneto do arquivo para outro processo para permitir um retorno mais rápido dos endpoints para o cliente !
 
 ### Utilização do "elasticsearch"
 
