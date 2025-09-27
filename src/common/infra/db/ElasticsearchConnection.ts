@@ -13,9 +13,9 @@ export class ElasticsearchConnection {
         return ElasticsearchConnection.instance;
     }
 
-    public static async connect(): Promise<void> {
+    public static async connect(config?: { node: string }): Promise<void> {
         if (!ElasticsearchConnection.client) {
-            const client = new Client({ node: 'http://localhost:9200' });
+            const client = new Client({ node: config?.node || 'http://localhost:9200' });
 
             let isConnected = await client.ping();
             while (!isConnected) isConnected = await client.ping();
