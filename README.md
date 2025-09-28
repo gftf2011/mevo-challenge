@@ -42,7 +42,7 @@ npm run start
 - [x] Verificar se Prescricao CONTROLADA tem notas do médico
 - [x] Verificar se Prescricao tem CÓDIGO DE UNIDADE FEDERATIVA válido
 - [x] Verificar se Prescricao tem CPF de paciente válido
-- [x] Verificar se Prescricao tem CRM do médico com 6 OU 7 caracteres válidos
+- [x] Verificar se Prescricao tem CRM do médico com 6 caracteres válidos
 
 ## Validações dos fluxos - Checkpoint
 
