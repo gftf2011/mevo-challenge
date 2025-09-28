@@ -8,9 +8,15 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms128m -Xmx128m
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
     networks:
       - elastic
-  
+
   kibana:
     image: docker.elastic.co/kibana/kibana:9.1.4
     container_name: kibana
@@ -21,7 +27,26 @@ services:
     networks:
       - elastic
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
+
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:9.1.4
+    container_name: apm-server
+    environment:
+      - output.elasticsearch.hosts=["http://elasticsearch:9200"]
+      - setup.kibana.host=kibana:5601
+      - apm-server.rum.enabled=true
+      - apm-server.auth.anonymous.enabled=true
+    ports:
+      - "8200:8200"
+    networks:
+      - elastic
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_started
 
 networks:
   elastic:

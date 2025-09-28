@@ -4,7 +4,9 @@ import crypto from 'crypto';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import apm from 'elastic-apm-node';
 
+import { ApmServerProvider } from './common/infra/providers/ApmServerProvider';
 import { ElasticsearchConnection } from './common/infra/db/ElasticsearchConnection';
 import { ElasticsearchUploadStatusRepository } from './upload-status/infra/repositories/ElasticsearchUploadStatusRepository';
 import { PrepareForUploadUseCase } from './upload-status/use-cases/PrepareForUploadUseCase';
@@ -68,9 +70,7 @@ app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request
     const id = req.file.filename.replace('.csv', '');
     const prepareForUploadUseCase = makePrepareForUploadUseCase();
     const response = await prepareForUploadUseCase.execute({ upload_id: id });
-
     backgroundJob(id, req.file.path, 100);
-
     return res.status(201).json(response);
 });
 
@@ -85,6 +85,7 @@ app.get('/api/prescriptions/upload/:id', async (req: Request, res: Response) => 
 const port = Number(process.env.PORT || 3000);
 
 app.listen(port, async () => {
+    ApmServerProvider.getInstance().start();
     await ElasticsearchConnection.connect();
     console.log(`Server listening on http://localhost:${port}`);
 });

@@ -7,40 +7,7 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
 
     constructor(private readonly client: Client) {}
 
-    private async createIndex(): Promise<void> {
-        try {
-            const indexExists = await this.client.indices.exists({ index: this.indexName });
-            if (!indexExists) {
-                await this.client.indices.create({
-                    index: this.indexName,
-                    mappings: {
-                        properties: {
-                            upload_id: { type: "keyword" },
-                            status: { type: "keyword" },
-                            total_records: { type: "integer" },
-                            processed_records: { type: "integer" },
-                            valid_records: { type: "integer" },
-                            errors: {
-                                type: "nested",
-                                properties: {
-                                    message: { type: "text" },
-                                    field: { type: "keyword" },
-                                    line: { type: "integer" },
-                                    value: { type: "keyword" }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        } catch (error) {
-            console.log(`Error creating index: ${this.indexName}`);
-            throw error;
-        }
-    }
-
     public async create(entity: UploadStatusEntity): Promise<void> {
-        await this.createIndex();
         await this.client.index({
             index: this.indexName,
             id: entity.upload_id,
@@ -49,7 +16,6 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
     }
 
     public async update(entity: UploadStatusEntity): Promise<void> {
-        await this.createIndex();
         await this.client.update({
             index: this.indexName,
             id: entity.upload_id,
@@ -79,7 +45,6 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
 
     public async findByUploadId(uploadId: string, withErrors: boolean): Promise<UploadStatusEntity | null> {
         try {
-            await this.createIndex();
             const response = await this.client.get({
                 index: this.indexName,
                 id: uploadId

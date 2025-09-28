@@ -12,12 +12,13 @@ describe("SaveBatchPrescriptionsUseCase - Integration Test Suite", () => {
 
     beforeAll(async () => {
         container = await new GenericContainer("docker.elastic.co/elasticsearch/elasticsearch:9.1.4")
-            .withEnvironment({
-                "discovery.type": "single-node",
-                "xpack.security.enabled": "false"
-            })
-            .withExposedPorts(9200)
-            .start();
+        .withEnvironment({
+            "discovery.type": "single-node",
+            "xpack.security.enabled": "false",
+            "ES_JAVA_OPTS": "-Xms128m -Xmx128m"
+        })
+        .withExposedPorts(9200)
+        .start();
 
         await ElasticsearchConnection.connect({ node: `http://${container.getHost()}:${container.getMappedPort(9200)}` });
         client = ElasticsearchConnection.getInstance().getClient();

@@ -39,6 +39,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^9.1.1",
     "csv-parser": "^3.2.0",
+    "elastic-apm-node": "^4.14.0",
     "express": "^5.1.0",
     "multer": "^2.0.2"
   }
