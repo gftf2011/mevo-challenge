@@ -67,14 +67,16 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
 
     const onStreamOperation = (stream: Stream.Transform) => {
         return async (data: any): Promise<void> => {
-            batch.push(data);
-            if (batch.length >= batchSize) {
-                stream.pause();
-                console.log(`upload: ${message.id} - stream paused to batch processing`);
-                await processBatch(stream, batch);
-                stream.resume();
-                console.log(`upload: ${message.id} - stream resumed`);
-                batch = [];
+            if (!Object.values(data).every(v => v === "")) {
+                batch.push(data);
+                if (batch.length >= batchSize) {
+                    stream.pause();
+                    console.log(`upload: ${message.id} - stream paused to batch processing`);
+                    await processBatch(stream, batch);
+                    stream.resume();
+                    console.log(`upload: ${message.id} - stream resumed`);
+                    batch = [];
+                }
             }
         }
     };
