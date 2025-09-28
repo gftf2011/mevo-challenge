@@ -118,30 +118,27 @@ Para utilização do elasticsearch justificativas:
 - Possibilidade de sobrescrita de dados já existentes, dado ao cenário de falha caso o arquivo seja corrompido
 - Suporte a dados não estruturados sendo que a forma como as prescrições são armazenadas pode ter variações
 
-## Cenários
-
-## Fluxo de arquivo com dados válidos
-
-Para cenários de dados válidos o endpoint `POST - api/prescription/upload` irá processar em batchs as partes do arquivo CSV em background disponibilizando as informações conforme forem processadas !
-
-## Fluxo de arquivo com dados inválidos
-
-Para cenários de dados inválidos o endpoint `POST - api/prescription/upload` irá processar em batchs as partes do arquivo CSV em background cada erro de validação será disponibilizado e armazenado em outro driver de dados para permitir a consulta, permitindo o processamento do batch do arquivo !
-
-## Fluxo de arquivo corrompido
-
-Para cenários de arquivos corrompidos será necessário o processamento em batch será interrompido para que o usuário possa fazer o download novamente do arquivo !
-
-<br/>
-
-## Fluxo dos endpoints
+## endpoints
 
 ### `POST - api/prescription/upload`
 
-Para permitir o processamento assíncrono dos dados o processamento do arquivo será feito em background, para isso será usado a parte de streams do nodejs sendo que elas são não bloqueantes. Para evitar problemas com a memória será usado um processamento em batch, então o arquivo CSV poderá ser lido em partes e processado de forma adequada sem afetar a memória !
+> #### Cenários - 201
+
+- __Cenário de arquivo com valores válido__ - Deverá processar todo o arquivo em background, as prescrições serão armazenadas
+- __Cenário de arquivo com valores inválidos__ - Deverá processar todo arquivo em background, as prescrições serão armazenadas e erros contabilizados
+- __Cenário de arquivo mal formatado (linhas em branco)__ - Deverá processar todo arquivo em background, ignorando as linhas em branco, as prescrições serão armazenadas e erros contabilizados
+- __Cenário de arquivo corrompido__ - Irá processar o que for possível e atualizará o processo de upload como `failed`
+
+> #### Cenários - 400
+
+- __Cenário de arquivo com extensão que não seja `.csv`__ - Deverá retornar um erro
 
 ### `GET - api/prescription/upload/:id`
 
-Endpoint para pegar os status do upload do arquivo !
+> #### Cenários - 200
 
-<br/>
+- __Cenário de upload que existe__ - Deverá retornar o status sendo os status possíveis sendo `pending | processing | completed | failed`
+
+> #### Cenários - 404
+
+- __Cenário de upload NÃO que existe__ - Deverá retornar um erro
