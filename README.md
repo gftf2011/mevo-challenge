@@ -62,13 +62,16 @@ npm run test
 
 - [x] Cenário de arquivos de dados válidos
 - [x] Cenário de arquivos de dados inválidos
+- [x] Cenário de arquivos mal formatados (linhas em branco)
 - [x] Cenário de arquivo corrompido
 
 ## Implementações
 
 - [x] Node.JS streams
-- [x] elasticsearch
 - [x] Node.JS child_process
+- [x] elasticsearch
+- [x] kibana
+- [x] APM Server
 
 ## Estimativas
 
@@ -94,7 +97,7 @@ Arredondando, seria necessário armazenar `320TB` de dados com retenção de at�
 
 ## Decisões Técnicas
 
-### Utilização de Streams para leitura de dados
+### Utilização de "streams" para leitura de dados
 
 Como o sistema irá lidar com "arquivos grandes" será necessário ler o arquivo sob demanda para não carregar toda a informação direto na memória da aplicação !
 
