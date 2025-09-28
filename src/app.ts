@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { fork } from 'child_process';
 import crypto from 'crypto';
 import multer from 'multer';
@@ -34,8 +34,11 @@ const storage = multer.diskStorage({
 
 const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
     const allowedMimetypes = ['text/csv'];
-    if (allowedMimetypes.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Only CSV files are allowed'));
+    if (allowedMimetypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only CSV files are allowed'));
+    }
 };
 
 const upload = multer({ storage, fileFilter });
@@ -67,9 +70,16 @@ const backgroundJob = (id: string, filepath: string, batchSize: number) => {
     child.on("close", () => console.log(`child process: ${child.pid} - closed`));
 };
 
-app.post('/api/prescriptions/upload', upload.single('file'), async (req: Request, res: Response) => {
+const fileExtensionValidationMiddleware = (err: Error, _req: Request, res: Response, next: NextFunction) => {
+    if (err) {
+        return res.status(400).json({ error: 'Invalid file type' });
+    }
+    return next();
+}
+
+app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValidationMiddleware, async (req: Request, res: Response) => {
     const transaction = apmAgent.startTransaction('POST:api/prescriptions/upload', 'request', { startTime: Date.now() });
-    
+
     if (!req.file) {
         transaction.end('error', Date.now());
         return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
