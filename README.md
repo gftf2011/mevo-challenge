@@ -110,7 +110,7 @@ Arredondando, seria necessário armazenar `320TB` de dados com retenção de at�
   id: string(UUID),
   date: string,
   patient_cpf: string(CHAR(11)),
-  doctor_crm: string,
+  doctor_crm: string(CHAR(6)),
   doctor_uf: string(CHAR(2)),
   medication: string,
   controlled: True | False,
