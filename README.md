@@ -32,6 +32,20 @@ npm run build
 npm run start
 ```
 
+## Como rodar os testes
+
+Para rodar os testes será necesário ter o `docker` instalado e como há a utilização de `testcontainers` é necessário rodar o comando abaixo:
+
+```
+docker login
+```
+
+Após isso será possível rodar os testes tendo o docker rodando usando o comando:
+
+```
+npm run test
+```
+
 ---
 
 ## Validação dos dados - Checkpoint
@@ -99,7 +113,7 @@ Para utilização do elasticsearch justificativas:
 - Acesso a bulk insert, o que é prioritário dado a cenário de procesamento em batch
 - Alta disponibilidade e acesso a integração com AWS OpenSearch permitindo integração com projetos nativos da AWS
 - Possibilidade de sobrescrita de dados já existentes, dado ao cenário de falha caso o arquivo seja corrompido
-- Suporte a dados nào estruturados sendo que a forma como a prescrições são armazenadas pode ter variações
+- Suporte a dados não estruturados sendo que a forma como as prescrições são armazenadas pode ter variações
 
 ## Cenários
 
