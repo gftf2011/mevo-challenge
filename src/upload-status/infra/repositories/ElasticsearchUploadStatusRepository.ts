@@ -28,8 +28,7 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
                         ctx._source.total_records = params.total_records;
                         ctx._source.processed_records = params.processed_records;
                         ctx._source.valid_records = params.valid_records;
-    
-                        for (e in params.errors) { ctx._source.errors.add(e) }
+                        ctx._source.errors.addAll(params.errors);
                     `,
                     params: {
                         status: entity.status,

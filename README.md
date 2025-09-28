@@ -66,9 +66,9 @@ A Mevo conta com mais de `25000` farmácias e clínicas, sendo que estas tem ace
 
 O armazenamento do dado deve ser armazenado por no mínimo `20 anos` contando a partir da data colocada na prescrição caso faça parte do prontuário, de acordo com o Conselho Federal de Medicina (CFM), a Agência Nacional de Vigilância Sanitária (ANVISA) e o Ministério da Saúde !
 
-Supondo que cada farmácia tenha um arquivo com as informações de `500000` de prescrições. E quandão as prescrições dos últimos `20 anos` !
+Supondo que cada farmácia tenha um arquivo com as informações de `500000` prescrições de cada ano. E tenham os arquivos dos últimos `20 anos` !
 
-Usando como base o arquivo fornecido para o teste, pode se supor que um arquivo de 200 linhas tenha em média `25KB` !
+Usando como base o arquivo fornecido para o teste, é possível estimar que um arquivo de 200 linhas tenha em média `25KB` !
 
 Os arquivos CSV de `500000` registros devem ter em média `625MB`
 
