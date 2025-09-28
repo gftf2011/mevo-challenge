@@ -64,6 +64,7 @@ npm run test
 - [x] Cenário de arquivos de dados inválidos
 - [x] Cenário de arquivos mal formatados (linhas em branco)
 - [x] Cenário de arquivo corrompido
+- [x] Cenário de arquivo com extensão não permitida
 
 ## Implementações
 
