@@ -68,6 +68,34 @@ describe("SaveBatchPrescriptionsUseCase - Integration Test Suite", () => {
         expect(result.errors.length).toBe(0);
     });
 
+    it('given input with valid prescriptions list with duplicated id, when calls execute(), then should return valid processed records and only one record should be saved', async () => {
+        const prescription = {
+            id: "1",
+            date: "2021-01-01",
+            patient_cpf: cpf.generate(false),
+            doctor_crm: "123456",
+            doctor_uf: "SP",
+            controlled: "True",
+            medication: "Medication",
+            dosage: "10mg",
+            frequency: "10mg",
+            duration: "10",
+            notes: "Notes",
+        } as any;
+
+        const repository = new ElasticsearchPrescriptionRepository(client);
+        const sut = new SaveBatchPrescriptionsUseCase(repository);
+        const result = await sut.execute({ prescriptions: [prescription, prescription], current_line: 1 });
+        expect(result).toBeDefined();
+        expect(result.valid_records).toBe(2);
+        expect(result.processed_records).toBe(2);
+        expect(result.errors.length).toBe(0);
+
+        const stats = await client.indices.stats({ index: 'prescriptions' });
+        const documentsCount = stats.indices?.['prescriptions']?.primaries?.docs?.count;
+        expect(documentsCount).toBe(1);
+    });
+
     afterEach(async () => {
         try { await client.indices.delete({ index: "prescriptions" }); } catch (error) {}
     });
