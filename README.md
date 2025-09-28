@@ -95,6 +95,64 @@ Contando todas as `25000` farmácias parceiras da Mevo (25000 x 12,5GB) = `312,5
 
 Arredondando, seria necessário armazenar `320TB` de dados com retenção de até `20 anos` !
 
+## Dados
+
+### Banco de dados
+
+- Elasticsearch
+
+### Modelagem de dados
+
+> prescriptions
+
+```
+{
+  id: string(UUID),
+  date: string,
+  patient_cpf: string(CHAR(11)),
+  doctor_crm: string,
+  doctor_uf: string(CHAR(2)),
+  medication: string,
+  controlled: True | False,
+  dosage: string,
+  frequency: string,
+  duration: number,
+  notes: string
+}
+```
+
+> upload-status
+
+```
+{
+  id: string(UUID),
+  upload_id: string(UUID),
+  status: pending | processing | completed | failed,
+  total_records: number,
+  processed_records: number,
+  valid_records: number,
+  errors: array<{
+    message: string,
+    field: string,
+    line: number,
+    value: string
+  }>
+}
+```
+
+> audit-logs
+
+```
+{
+  id: string(UUID),
+  type: HTTP | JOB,
+  resource: string,
+  status: SUCCESS | PROCESSING | ERROR | CLOSED,
+  ip: string,
+  timestamp: string
+}
+```
+
 ## Decisões Técnicas
 
 ### Utilização de "streams" para leitura de dados
