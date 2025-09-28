@@ -2,15 +2,15 @@
   "name": "mevo-challenge",
   "version": "1.0.0",
   "description": "url do desafio: [https://github.com/brunolobo-mevo/](https://github.com/brunolobo-mevo/dGVzdGU6bWV2b2JhY2tlbmQ/blob/main/README.md)",
-  "main": "dist/app.js",
+  "main": "dist/index.js",
   "scripts": {
     "docker:up": "docker-compose up -d --remove-orphans",
     "docker:down": "docker-compose down",
     "docker:clear": "docker-compose down && docker image prune -a -f && docker volume prune -f",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/app.js",
+    "start": "node dist/index.js",
     "pretest": "npm run docker:up",
-    "test": "jest",
+    "test": "jest --coverage",
     "posttest": "npm run docker:clear"
   },
   "repository": {

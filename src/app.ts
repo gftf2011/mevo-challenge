@@ -60,7 +60,7 @@ const makeCreateAuditLogUseCase = (): CreateAuditLogUseCase => {
     return new CreateAuditLogUseCase(auditLogRepository);
 }
 
-let apmAgent: Agent;
+let apmAgent: Agent = ApmServerProvider.start({ serviceName: 'mevo-challenge-api' });
 
 const backgroundJob = (id: string, ip: string, filepath: string, batchSize: number) => {
     const child = fork("./dist/job.js");
@@ -158,10 +158,12 @@ app.get('/api/prescriptions/upload/:id', async (req: Request, res: Response) => 
     return res.status(200).json(response);
 });
 
-const port = Number(process.env.PORT || 3000);
+export default app;
 
-app.listen(port, async () => {
-    apmAgent = ApmServerProvider.start({ serviceName: 'mevo-challenge-api' });
-    await ElasticsearchConnection.connect();
-    console.log(`Server listening on http://localhost:${port}`);
-});
+// const port = Number(process.env.PORT || 3000);
+
+// app.listen(port, async () => {
+//     apmAgent = ApmServerProvider.start({ serviceName: 'mevo-challenge-api' });
+//     await ElasticsearchConnection.connect();
+//     console.log(`Server listening on http://localhost:${port}`);
+// });

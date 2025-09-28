@@ -96,6 +96,13 @@ process.on("message", async (message: { id: string, ip: string, filepath: string
         return async (_error: Error): Promise<void> => {
             await failedUploadUseCase.execute({ upload_id: message.id });
             stream.destroy();
+            await createAuditLogUseCase.execute({
+                id: crypto.randomUUID(),
+                type: 'JOB',
+                resource: `BATCH - processBatch: ${message.id}`,
+                status: 'ERROR',
+                ip: message.ip
+            });
             ElasticsearchConnection.getInstance().close();
             await fs.promises.unlink(message.filepath);
             process.send?.({ type: "failed" });
@@ -106,6 +113,13 @@ process.on("message", async (message: { id: string, ip: string, filepath: string
         return async (): Promise<void> => {
             if (batch.length > 0) await processBatch(stream, batch);
             await finishUploadUseCase.execute({ upload_id: message.id });
+            await createAuditLogUseCase.execute({
+                id: crypto.randomUUID(),
+                type: 'JOB',
+                resource: `BATCH - processBatch: ${message.id}`,
+                status: 'SUCCESS',
+                ip: message.ip
+            });
             ElasticsearchConnection.getInstance().close();
             await fs.promises.unlink(message.filepath);
             process.send?.({ type: "done" });
