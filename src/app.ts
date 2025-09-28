@@ -11,6 +11,8 @@ import { ElasticsearchConnection } from './common/infra/db/ElasticsearchConnecti
 import { ElasticsearchUploadStatusRepository } from './upload-status/infra/repositories/ElasticsearchUploadStatusRepository';
 import { PrepareForUploadUseCase } from './upload-status/use-cases/PrepareForUploadUseCase';
 import { RetrieveUploadStatusUseCase } from './upload-status/use-cases/RetrieveUploadStatusUseCase';
+import { ElasticsearchAuditLogRepository } from './audit-log/infra/repositories/ElasticsearchAuditLogRepository';
+import { CreateAuditLogUseCase } from './audit-log/use-cases/CreateAuditLogUseCase';
 
 const app = express();
 app.use(express.json());
@@ -53,21 +55,27 @@ const makeRetrieveUploadStatusUseCase = (): RetrieveUploadStatusUseCase => {
     return new RetrieveUploadStatusUseCase(uploadStatusRepository);
 }
 
+const makeCreateAuditLogUseCase = (): CreateAuditLogUseCase => {
+    const auditLogRepository = new ElasticsearchAuditLogRepository(ElasticsearchConnection.getInstance().getClient());
+    return new CreateAuditLogUseCase(auditLogRepository);
+}
+
 let apmAgent: Agent;
 
-const backgroundJob = (id: string, filepath: string, batchSize: number) => {
+const backgroundJob = (id: string, ip: string, filepath: string, batchSize: number) => {
     const child = fork("./dist/job.js");
-    child.send({ id, filepath, batchSize });
+
+    child.send({ id, ip, filepath, batchSize });
     child.on("message", (message: { type: string }) => {
         if (message.type === "done") {
-          console.log("Upload completed");
           child.kill();
         } else if (message.type === "failed") {
-          console.log("Upload failed");
           child.kill();
         }
     });
-    child.on("close", () => console.log(`child process: ${child.pid} - closed`));
+    child.on("close", async () => {
+        console.log(`child process: ${child.pid} - closed`);
+    });
 };
 
 const fileExtensionValidationMiddleware = (err: Error, _req: Request, res: Response, next: NextFunction) => {
@@ -80,8 +88,19 @@ const fileExtensionValidationMiddleware = (err: Error, _req: Request, res: Respo
 app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValidationMiddleware, async (req: Request, res: Response) => {
     const transaction = apmAgent.startTransaction('POST:api/prescriptions/upload', 'request', { startTime: Date.now() });
 
+    const createAuditLogUseCase = makeCreateAuditLogUseCase();
+
     if (!req.file) {
         transaction.end('error', Date.now());
+
+        await createAuditLogUseCase.execute({
+            id: crypto.randomUUID(),
+            type: 'HTTP',
+            resource: 'POST - /api/prescriptions/upload',
+            status: 'ERROR',
+            ip: req.ip?.toString() || 'unknown'
+        });
+
         return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
     }
 
@@ -89,24 +108,53 @@ app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValida
     const prepareForUploadUseCase = makePrepareForUploadUseCase();
     const response = await prepareForUploadUseCase.execute({ upload_id: id });
 
-    backgroundJob(id, req.file.path, 100);
+    backgroundJob(id, req.ip?.toString() || 'unknown', req.file.path, 100);
 
     transaction.end('success', Date.now());
+
+    await createAuditLogUseCase.execute({
+        id: crypto.randomUUID(),
+        type: 'HTTP',
+        resource: 'POST - /api/prescriptions/upload',
+        status: 'SUCCESS',
+        ip: req.ip?.toString() || 'unknown'
+    });
+
     return res.status(201).json(response);
 });
 
 app.get('/api/prescriptions/upload/:id', async (req: Request, res: Response) => {
     const transaction = apmAgent.startTransaction('GET:api/prescriptions/upload/:id', 'request', { startTime: Date.now() });
-    
+
+    const createAuditLogUseCase = makeCreateAuditLogUseCase();
+
     const { id } = req.params;
     const retrieveUploadStatusUseCase = makeRetrieveUploadStatusUseCase();
     const response = await retrieveUploadStatusUseCase.execute({ upload_id: id });
     if (!response) {
         transaction.end('error', Date.now());
+
+        await createAuditLogUseCase.execute({
+            id: crypto.randomUUID(),
+            type: 'HTTP',
+            resource: 'GET - /api/prescriptions/upload/:id',
+            status: 'ERROR',
+            ip: req.ip?.toString() || 'unknown'
+        });
+
         return res.status(404).json({ error: `upload: ${id} - does not exists` });
     }
 
     transaction.end('success', Date.now());
+
+    await createAuditLogUseCase.execute({
+        id: crypto.randomUUID(),
+        type: 'HTTP',
+        resource: 'GET - /api/prescriptions/upload/:id',
+        status: 'SUCCESS',
+        ip: req.ip?.toString() || 'unknown'
+    });
+
     return res.status(200).json(response);
 });
 

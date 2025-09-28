@@ -10,6 +10,13 @@ import { ElasticsearchUploadStatusRepository } from './upload-status/infra/repos
 import { FinishUploadUseCase } from './upload-status/use-cases/FinishUploadUseCase';
 import { UpdateUploadStatusUseCase } from './upload-status/use-cases/UpdateUploadStatusUseCase';
 import { FailedUploadUseCase } from './upload-status/use-cases/FailedUploadUseCase';
+import { CreateAuditLogUseCase } from './audit-log/use-cases/CreateAuditLogUseCase';
+import { ElasticsearchAuditLogRepository } from './audit-log/infra/repositories/ElasticsearchAuditLogRepository';
+
+const makeCreateAuditLogUseCase = (): CreateAuditLogUseCase => {
+    const auditLogRepository = new ElasticsearchAuditLogRepository(ElasticsearchConnection.getInstance().getClient());
+    return new CreateAuditLogUseCase(auditLogRepository);
+}
 
 const makeStartUploadUseCase = (): StartUploadUseCase => {
     const uploadStatusRepository = new ElasticsearchUploadStatusRepository(ElasticsearchConnection.getInstance().getClient());
@@ -36,7 +43,7 @@ const makeFailedUploadUseCase = (): FailedUploadUseCase => {
     return new FailedUploadUseCase(uploadStatusRepository);
 }
 
-process.on("message", async (message: { id: string, filepath: string, batchSize: number }) => {
+process.on("message", async (message: { id: string, ip: string, filepath: string, batchSize: number }) => {
     await ElasticsearchConnection.connect();
 
     const startUploadUseCase = makeStartUploadUseCase();
@@ -44,6 +51,7 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
     const updateUploadStatusUseCase = makeUpdateUploadStatusUseCase();
     const finishUploadUseCase = makeFinishUploadUseCase();
     const failedUploadUseCase = makeFailedUploadUseCase();
+    const createAuditLogUseCase = makeCreateAuditLogUseCase();
 
     await startUploadUseCase.execute({ upload_id: message.id });
 
@@ -57,10 +65,15 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
         try {
             const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
             await updateUploadStatusUseCase.execute({ upload_id: message.id, valid_records, processed_records, errors });
+            await createAuditLogUseCase.execute({
+                id: crypto.randomUUID(),
+                type: 'JOB',
+                resource: `BATCH - processBatch: ${message.id}`,
+                status: 'PROCESSING',
+                ip: message.ip
+            });
             current_line += batch.length;
-            console.log(`upload: ${message.id} - batch processed successfully`);
         } catch (error) {
-            console.log(`upload: ${message.id} - error processing batch`, error);
             stream.emit("error", new Error("Error processing batch"));
         }
     };
@@ -71,10 +84,8 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
                 batch.push(data);
                 if (batch.length >= batchSize) {
                     stream.pause();
-                    console.log(`upload: ${message.id} - stream paused to batch processing`);
                     await processBatch(stream, batch);
                     stream.resume();
-                    console.log(`upload: ${message.id} - stream resumed`);
                     batch = [];
                 }
             }
@@ -87,7 +98,6 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
             stream.destroy();
             ElasticsearchConnection.getInstance().close();
             await fs.promises.unlink(message.filepath);
-            console.log(`upload: ${message.id} - failed due to file corruption`);
             process.send?.({ type: "failed" });
         }
     };
@@ -98,7 +108,6 @@ process.on("message", async (message: { id: string, filepath: string, batchSize:
             await finishUploadUseCase.execute({ upload_id: message.id });
             ElasticsearchConnection.getInstance().close();
             await fs.promises.unlink(message.filepath);
-            console.log(`upload: ${message.id} - ended successfully`);
             process.send?.({ type: "done" });
         }
     };

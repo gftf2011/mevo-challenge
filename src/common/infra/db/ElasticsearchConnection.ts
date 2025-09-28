@@ -42,6 +42,7 @@ export class ElasticsearchConnection {
                 index: 'upload-status',
                 mappings: {
                     properties: {
+                        id: { type: "keyword" },
                         upload_id: { type: "keyword" },
                         status: { type: "keyword" },
                         total_records: { type: "integer" },
@@ -56,6 +57,23 @@ export class ElasticsearchConnection {
                                 value: { type: "keyword" }
                             }
                         }
+                    }
+                }
+            });
+        }
+
+        indexExists = await client.indices.exists({ index: 'audit-logs' });
+        if (!indexExists) {
+            await client.indices.create({
+                index: 'audit-logs',
+                mappings: {
+                    properties: {
+                        id: { type: "keyword" },
+                        type: { type: "keyword" },
+                        resource: { type: "text" },
+                        status: { type: "keyword" },
+                        ip: { type: "keyword" },
+                        timestamp: { type: "date" }
                     }
                 }
             });
