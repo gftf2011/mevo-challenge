@@ -131,13 +131,20 @@ Arredondando, seria necessário armazenar `320TB` de dados com retenção de at�
   status: pending | processing | completed | failed,
   total_records: number,
   processed_records: number,
-  valid_records: number,
-  errors: array<{
-    message: string,
-    field: string,
-    line: number,
-    value: string
-  }>
+  valid_records: number
+}
+```
+
+> upload-status-errors
+
+```
+{
+  id: string(UUID),
+  upload_id: string(UUID),
+  message: string,
+  field: string,
+  line: number,
+  value: string
 }
 ```
 
