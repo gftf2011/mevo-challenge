@@ -129,12 +129,18 @@ Contando todas as `25000` farmácias parceiras da Mevo (25000 x 2,5GB) - de form
   total_records: number,
   processed_records: number,
   valid_records: number,
-  errors: array<{
-    message: string,
-    field: string,
-    line: number,
-    value: string
-  }>
+}
+```
+> upload-status-errors
+
+```
+{
+  id: string(UUID),
+  upload_id: string(UUID),
+  message: string,
+  field: string,
+  line: number,
+  value: string
 }
 ```
 
