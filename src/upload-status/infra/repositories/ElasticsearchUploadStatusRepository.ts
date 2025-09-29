@@ -3,21 +3,36 @@ import { UploadStatusRepository } from "../../domain/repositories/UploadStatusRe
 import { UploadStatusEntity } from "../../domain/entities/UploadStatusEntity";
 
 export class ElasticsearchUploadStatusRepository implements UploadStatusRepository<UploadStatusEntity> {
-    private readonly indexName = 'upload-status';
+    private readonly indexUploadStatusName = 'upload-status';
+    private readonly indexErrorsName = 'upload-status-errors';
 
     constructor(private readonly client: Client) {}
 
     public async create(entity: UploadStatusEntity): Promise<void> {
+        const { id, upload_id, status, total_records, processed_records, valid_records } = entity.toJSON();
         await this.client.index({
-            index: this.indexName,
+            index: this.indexUploadStatusName,
             id: entity.upload_id,
-            document: entity.toJSON()
+            document: {
+                id,
+                upload_id,
+                status,
+                total_records,
+                processed_records,
+                valid_records,
+            }
         });
     }
 
     public async update(entity: UploadStatusEntity): Promise<void> {
+        if (entity.errors.length > 0) {
+            const errorsDataset = entity.errors.map(error => ({ ...error, upload_id: entity.upload_id, id: crypto.randomUUID() }));
+            const errorsBody = errorsDataset.flatMap(doc => [{ index: { _index: this.indexErrorsName, _id: doc.id } }, doc])
+            await this.client.bulk({ refresh: true, body: errorsBody });
+        }
+        
         await this.client.update({
-            index: this.indexName,
+            index: this.indexUploadStatusName,
             id: entity.upload_id,
             retry_on_conflict: 5,
             body: {
@@ -28,14 +43,12 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
                         ctx._source.total_records = params.total_records;
                         ctx._source.processed_records = params.processed_records;
                         ctx._source.valid_records = params.valid_records;
-                        ctx._source.errors.addAll(params.errors);
                     `,
                     params: {
                         status: entity.status,
                         total_records: entity.total_records,
                         processed_records: entity.processed_records,
                         valid_records: entity.valid_records,
-                        errors: entity.errors
                     },
                 },
             } as any
@@ -44,8 +57,43 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
 
     public async findByUploadId(uploadId: string, withErrors: boolean): Promise<UploadStatusEntity | null> {
         try {
+            const errors: any[] = [];
+            if (withErrors) {
+                let errorsScroll = await this.client.search({
+                    index: this.indexErrorsName,
+                    scroll: '1m', // keep context alive for 1 minute
+                    size: 1000, // batch size
+                    query: {
+                      term: { upload_id: uploadId }
+                    }
+                });
+    
+                let scrollId = errorsScroll._scroll_id;
+                let hits = errorsScroll.hits.hits;
+    
+                while (hits.length && hits.length > 0) {
+                    errors.push(...hits);
+                    const scroll = await this.client.scroll({
+                        scroll_id: scrollId,
+                        scroll: '1m',
+                    });
+    
+                    scrollId = scroll._scroll_id;
+                    hits = scroll.hits.hits;
+                }
+    
+                await this.client.clearScroll({ scroll_id: scrollId });
+            }
+
+            const mappedErrors = errors.map(error => ({
+                message: error._source.message,
+                field: error._source.field,
+                line: error._source.line,
+                value: error._source.value,
+            }));
+
             const response = await this.client.get({
-                index: this.indexName,
+                index: this.indexUploadStatusName,
                 id: uploadId
             });
 
@@ -56,12 +104,6 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
                 total_records: number;
                 processed_records: number;
                 valid_records: number;
-                errors: {
-                    message: string;
-                    field: string;
-                    line: number;
-                    value: string;
-                }[];
             };
 
             if (response.found) {
@@ -72,7 +114,7 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
                     total_records: source.total_records,
                     processed_records: source.processed_records,
                     valid_records: source.valid_records,
-                    errors: withErrors ? source.errors : []
+                    errors: mappedErrors,
                 });
             }
 

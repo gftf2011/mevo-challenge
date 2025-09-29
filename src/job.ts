@@ -58,12 +58,13 @@ process.on("message", async (message: { id: string, ip: string, filepath: string
     const batchSize = message.batchSize;
     let current_line = 1;
     let batch: any[] = [];
+    let lines: number[] = [];
 
     const stream = fs.createReadStream(message.filepath).pipe(csv());
 
     const processBatch = async (stream: Stream.Transform, batch: any[]) => {
         try {
-            const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, current_line });
+            const { valid_records, processed_records, errors } = await saveBatchPrescriptionsUseCase.execute({ prescriptions: batch, lines });
             await updateUploadStatusUseCase.execute({ upload_id: message.id, valid_records, processed_records, errors });
             await createAuditLogUseCase.execute({
                 id: crypto.randomUUID(),
@@ -72,8 +73,8 @@ process.on("message", async (message: { id: string, ip: string, filepath: string
                 status: 'PROCESSING',
                 ip: message.ip
             });
-            current_line += batch.length;
         } catch (error) {
+            console.error(error);
             stream.emit("error", new Error("Error processing batch"));
         }
     };
@@ -81,14 +82,17 @@ process.on("message", async (message: { id: string, ip: string, filepath: string
     const onStreamOperation = (stream: Stream.Transform) => {
         return async (data: any): Promise<void> => {
             if (!Object.values(data).every(v => v === "")) {
+                lines.push(current_line);
                 batch.push(data);
                 if (batch.length >= batchSize) {
                     stream.pause();
                     await processBatch(stream, batch);
                     stream.resume();
                     batch = [];
+                    lines = [];
                 }
             }
+            current_line++;
         }
     };
 

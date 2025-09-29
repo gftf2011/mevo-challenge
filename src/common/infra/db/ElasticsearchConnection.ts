@@ -36,6 +36,23 @@ export class ElasticsearchConnection {
             });
         }
 
+        indexExists = await client.indices.exists({ index: 'upload-status-errors' });
+        if (!indexExists) {
+            await client.indices.create({
+                index: 'upload-status-errors',
+                mappings: {
+                    properties: {
+                        id: { type: "keyword" },
+                        upload_id: { type: "keyword" },
+                        message: { type: "text" },
+                        field: { type: "keyword" },
+                        line: { type: "integer" },
+                        value: { type: "keyword" }
+                    }
+                }
+            });
+        }
+
         indexExists = await client.indices.exists({ index: 'upload-status' });
         if (!indexExists) {
             await client.indices.create({
@@ -48,15 +65,6 @@ export class ElasticsearchConnection {
                         total_records: { type: "integer" },
                         processed_records: { type: "integer" },
                         valid_records: { type: "integer" },
-                        errors: {
-                            type: "nested",
-                            properties: {
-                                message: { type: "text" },
-                                field: { type: "keyword" },
-                                line: { type: "integer" },
-                                value: { type: "keyword" }
-                            }
-                        }
                     }
                 }
             });
@@ -82,7 +90,7 @@ export class ElasticsearchConnection {
 
     public static async connect(config?: { node: string }): Promise<void> {
         if (!ElasticsearchConnection.client) {
-            const client = new Client({ node: config?.node || 'http://localhost:9200' });
+            const client = new Client({ node: config?.node || 'http://localhost:9200', requestTimeout: 60000 });
 
             let isConnected = await client.ping();
             while (!isConnected) {

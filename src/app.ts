@@ -108,7 +108,7 @@ app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValida
     const prepareForUploadUseCase = makePrepareForUploadUseCase();
     const response = await prepareForUploadUseCase.execute({ upload_id: id });
 
-    backgroundJob(id, req.ip?.toString() || 'unknown', req.file.path, 100);
+    backgroundJob(id, req.ip?.toString() || 'unknown', req.file.path, 1000);
 
     transaction.end('success', Date.now());
 
@@ -159,11 +159,3 @@ app.get('/api/prescriptions/upload/:id', async (req: Request, res: Response) => 
 });
 
 export default app;
-
-// const port = Number(process.env.PORT || 3000);
-
-// app.listen(port, async () => {
-//     apmAgent = ApmServerProvider.start({ serviceName: 'mevo-challenge-api' });
-//     await ElasticsearchConnection.connect();
-//     console.log(`Server listening on http://localhost:${port}`);
-// });

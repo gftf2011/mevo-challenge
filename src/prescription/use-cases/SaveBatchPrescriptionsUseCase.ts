@@ -5,7 +5,6 @@ import { PrescriptionRepository } from "../domain/repositories/PrescriptionRepos
 import { PrescriptionDomainError } from "../domain/errors/PrescriptionDomainError";
 
 export type Input = {
-    current_line: number;
     prescriptions: {
         id: string;
         date: string;
@@ -19,6 +18,7 @@ export type Input = {
         duration: string;
         notes?: string;
     }[];
+    lines: number[];
 };
 
 export type Output = {
@@ -36,8 +36,6 @@ export class SaveBatchPrescriptionsUseCase implements UseCase<Input, Output> {
     constructor(private readonly prescriptionRepository: PrescriptionRepository<PrescriptionEntity>) {}
 
     async execute(input: Input): Promise<Output> {
-        let line = input.current_line;
-
         const response: Output = {
             valid_records: 0,
             processed_records: 0,
@@ -46,15 +44,15 @@ export class SaveBatchPrescriptionsUseCase implements UseCase<Input, Output> {
 
         const validPrescriptions: PrescriptionEntity[] = [];
 
-        for (const prescription of input.prescriptions) {
+        for (let i = 0; i < input.prescriptions.length; i++) {
             const notificationHandler = NotificationHandler.createEmpty();
-            const prescriptionEntity = PrescriptionEntity.create(prescription);
+            const prescriptionEntity = PrescriptionEntity.create(input.prescriptions[i]);
             prescriptionEntity.validate(notificationHandler);
             if (notificationHandler.hasErrors()) {
                 const errors = (notificationHandler.getErrors() as PrescriptionDomainError[]).map(error => ({
                     message: error.message,
                     field: error.property,
-                    line,
+                    line: input.lines[i],
                     value: error.value,
                 }));
                 response.errors.push(...errors);
@@ -63,7 +61,6 @@ export class SaveBatchPrescriptionsUseCase implements UseCase<Input, Output> {
                 validPrescriptions.push(prescriptionEntity);
             }
             response.processed_records++;
-            line++;
         }
 
         await this.prescriptionRepository.saveMany(validPrescriptions);
