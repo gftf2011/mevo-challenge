@@ -64,7 +64,6 @@ npm run test
 - [x] Cenário de arquivos de dados inválidos
 - [x] Cenário de arquivos mal formatados (linhas em branco)
 - [x] Cenário de arquivo corrompido
-- [x] Cenário de arquivo com extensão não permitida
 
 ## Implementações
 
@@ -84,17 +83,15 @@ A Mevo conta com mais de `25000` farmácias e clínicas, sendo que estas tem ace
 
 O armazenamento do dado deve ser armazenado por no mínimo `20 anos` contando a partir da data colocada na prescrição caso faça parte do prontuário, de acordo com o Conselho Federal de Medicina (CFM), a Agência Nacional de Vigilância Sanitária (ANVISA) e o Ministério da Saúde !
 
-Supondo que cada farmácia tenha um arquivo com as informações de `500000` prescrições de cada ano. E tenham os arquivos dos últimos `20 anos` !
+Supondo que cada farmácia tenha um arquivo com as informações de `1000000` prescrições de cada ano. E tenham os arquivos dos últimos `20 anos` !
 
 Usando como base o arquivo fornecido para o teste, é possível estimar que um arquivo de 200 linhas tenha em média `25KB` !
 
-Os arquivos CSV de `500000` registros devem ter em média `625MB`
+Os arquivos CSV de `1000000` registros devem ter em média, aproximada `125MB`
 
-Cada farmácia submeteria (20 x 625MB) = `12,5GB`
+Cada farmácia submeteria (20 x 125MB) = `2,5GB` de dados, de forma aproximada
 
-Contando todas as `25000` farmácias parceiras da Mevo (25000 x 12,5GB) = `312,5TB`
-
-Arredondando, seria necessário armazenar `320TB` de dados com retenção de até `20 anos` !
+Contando todas as `25000` farmácias parceiras da Mevo (25000 x 2,5GB) - de forma aproximada = `62TB` com retenção de `20 anos`
 
 ## Dados
 
@@ -111,7 +108,7 @@ Arredondando, seria necessário armazenar `320TB` de dados com retenção de at�
   id: string(UUID),
   date: string,
   patient_cpf: string(CHAR(11)),
-  doctor_crm: string(CHAR(6)),
+  doctor_crm: string,
   doctor_uf: string(CHAR(2)),
   medication: string,
   controlled: True | False,
@@ -131,20 +128,13 @@ Arredondando, seria necessário armazenar `320TB` de dados com retenção de at�
   status: pending | processing | completed | failed,
   total_records: number,
   processed_records: number,
-  valid_records: number
-}
-```
-
-> upload-status-errors
-
-```
-{
-  id: string(UUID),
-  upload_id: string(UUID),
-  message: string,
-  field: string,
-  line: number,
-  value: string
+  valid_records: number,
+  errors: array<{
+    message: string,
+    field: string,
+    line: number,
+    value: string
+  }>
 }
 ```
 

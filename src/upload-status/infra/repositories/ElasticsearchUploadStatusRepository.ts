@@ -65,7 +65,10 @@ export class ElasticsearchUploadStatusRepository implements UploadStatusReposito
                     size: 1000, // batch size
                     query: {
                       term: { upload_id: uploadId }
-                    }
+                    },
+                    sort: [
+                        { line: 'asc' }
+                    ]
                 });
     
                 let scrollId = errorsScroll._scroll_id;

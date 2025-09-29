@@ -74,7 +74,6 @@ process.on("message", async (message: { id: string, ip: string, filepath: string
                 ip: message.ip
             });
         } catch (error) {
-            console.error(error);
             stream.emit("error", new Error("Error processing batch"));
         }
     };

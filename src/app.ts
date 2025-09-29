@@ -108,7 +108,7 @@ app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValida
     const prepareForUploadUseCase = makePrepareForUploadUseCase();
     const response = await prepareForUploadUseCase.execute({ upload_id: id });
 
-    backgroundJob(id, req.ip?.toString() || 'unknown', req.file.path, 1000);
+    backgroundJob(id, req.ip?.toString() || 'unknown', req.file.path, 4000);
 
     transaction.end('success', Date.now());
 
