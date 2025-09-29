@@ -178,6 +178,21 @@ Para utilização do elasticsearch justificativas:
 
 Como seria utilizado o módulo de "child_process" , foi escolhido a utilização do "express" devido a sua simplicidade, em contrapartida para o "Nest.JS" seria necessário a criação de um serviço e módulo apenas para a utilização de "child_process" !
 
+## Benchmark
+
+> Máquina: MacBook PRO - APPLE M2 - 8 MB
+
+| Número de Arquivos | Batch Size | Tipo de Arquivo | Número de Registros |             endpoint            | Tempo de Processamento |
+|:------------------:|:----------:|:---------------:|:-------------------:|:-------------------------------:|:----------------------:|
+| 1                  | 1000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 2m                     |
+| 1                  | 2000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 1m, 30s                |
+| 1                  | 3000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 1m, 25s                |
+| 1                  | 4000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 1m, 15s                |
+| 3                  | 1000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 45s                |
+| 3                  | 2000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 15s                |
+| 3                  | 3000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 25s                |
+| 3                  | 4000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 20s                |
+
 ## endpoints
 
 ### `POST - api/prescription/upload`
