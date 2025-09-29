@@ -181,8 +181,12 @@ Para utilização do elasticsearch justificativas:
 
 - Acesso a bulk insert, o que é prioritário dado a cenário de procesamento em batch
 - Alta disponibilidade e acesso a integração com AWS OpenSearch permitindo integração com projetos nativos da AWS
-- Possibilidade de sobrescrita de dados já existentes, dado ao cenário de falha caso o arquivo seja corrompido
+- Possibilidade de sobrescrita de dados já existentes, dado ao cenário de falha caso o arquivo tenha prescrições duplicadas
 - Suporte a dados não estruturados sendo que a forma como as prescrições são armazenadas pode ter variações
+
+### Utilização do "express"
+
+Como seria utilizado o módulo de "child_process" , foi escolhido a utilização do "express" devido a sua simplicidade, em contrapartida para o "Nest.JS" seria necessário a criação de um serviço e módulo apenas para a utilização de "child_process" !
 
 ## endpoints
 
