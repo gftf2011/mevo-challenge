@@ -10,6 +10,7 @@ Para o projeto foi utilizado Node.JS v22.19.0
 - Node.JS v22.19.0
 - Docker
 - Docker Compose
+- K6
 
 Rode o comando:
 ```
@@ -44,6 +45,26 @@ Após isso será possível rodar os testes tendo o docker rodando usando o coman
 
 ```
 npm run test
+```
+
+## Como rodar o teste de fumaça
+
+Para rodar o testes de fumaça será ncessário a instalação do K6.
+
+Em um terminal rode os comandos abaixo:
+
+```
+npm run build
+```
+
+```
+npm run start
+```
+
+Depois abra outro terminal e rode o comando para rodar os testes de fumaça:
+
+```
+npm run perf:smoke
 ```
 
 ---
