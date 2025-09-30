@@ -186,7 +186,7 @@ Como seria utilizado o módulo de "child_process" , foi escolhido a utilização
 
 ## Benchmark
 
-> Máquina: MacBook PRO - APPLE M2 - 8 MB
+> Máquina: MacBook PRO - APPLE M2 - 8 GB
 
 | Número de Arquivos | Batch Size | Tipo de Arquivo | Número de Registros |             endpoint            | Tempo de Processamento |
 |:------------------:|:----------:|:---------------:|:-------------------:|:-------------------------------:|:----------------------:|
@@ -198,6 +198,8 @@ Como seria utilizado o módulo de "child_process" , foi escolhido a utilização
 | 3                  | 2000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 15s                |
 | 3                  | 3000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 25s                |
 | 3                  | 4000       | .csv            | 1.300.000           |  POST - api/prescription/upload | 4m, 20s                |
+
+__OBS.: Tempo de Processamento é o tempo para fazer toda a leitura do arquivo, e não o tempo de resposta da API !__
 
 ## endpoints
 
