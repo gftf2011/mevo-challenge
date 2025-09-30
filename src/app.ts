@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { fork } from 'child_process';
+import { ChildProcess, fork } from 'child_process';
 import crypto from 'crypto';
 import multer from 'multer';
 import fs from 'fs';
@@ -11,8 +11,6 @@ import { ElasticsearchConnection } from './common/infra/db/ElasticsearchConnecti
 import { ElasticsearchUploadStatusRepository } from './upload-status/infra/repositories/ElasticsearchUploadStatusRepository';
 import { PrepareForUploadUseCase } from './upload-status/use-cases/PrepareForUploadUseCase';
 import { RetrieveUploadStatusUseCase } from './upload-status/use-cases/RetrieveUploadStatusUseCase';
-import { ElasticsearchAuditLogRepository } from './audit-log/infra/repositories/ElasticsearchAuditLogRepository';
-import { CreateAuditLogUseCase } from './audit-log/use-cases/CreateAuditLogUseCase';
 
 const app = express();
 app.use(express.json());
@@ -45,26 +43,42 @@ const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-const makePrepareForUploadUseCase = (): PrepareForUploadUseCase => {
-    const uploadStatusRepository = new ElasticsearchUploadStatusRepository(ElasticsearchConnection.getInstance().getClient());
-    return new PrepareForUploadUseCase(uploadStatusRepository);
+const makePrepareForUploadUseCase = () => {
+    let useCase: PrepareForUploadUseCase;
+    let initialized = false;
+    
+    return (): PrepareForUploadUseCase => {
+        if (!initialized) {
+            useCase = new PrepareForUploadUseCase(new ElasticsearchUploadStatusRepository(ElasticsearchConnection.getInstance().getClient()));
+            initialized = true;
+        }
+        return useCase;
+    }
 }
 
-const makeRetrieveUploadStatusUseCase = (): RetrieveUploadStatusUseCase => {
-    const uploadStatusRepository = new ElasticsearchUploadStatusRepository(ElasticsearchConnection.getInstance().getClient());
-    return new RetrieveUploadStatusUseCase(uploadStatusRepository);
+const makeRetrieveUploadStatusUseCase = () => {
+    let useCase: RetrieveUploadStatusUseCase;
+    let initialized = false;
+    
+    return (): RetrieveUploadStatusUseCase => {
+        if (!initialized) {
+            useCase = new RetrieveUploadStatusUseCase(new ElasticsearchUploadStatusRepository(ElasticsearchConnection.getInstance().getClient()));
+            initialized = true;
+        }
+        return useCase;
+    }
 }
 
-const makeCreateAuditLogUseCase = (): CreateAuditLogUseCase => {
-    const auditLogRepository = new ElasticsearchAuditLogRepository(ElasticsearchConnection.getInstance().getClient());
-    return new CreateAuditLogUseCase(auditLogRepository);
-}
+const getRetrieveUploadStatusUseCase = makeRetrieveUploadStatusUseCase();
+const getPrepareForUploadUseCase = makePrepareForUploadUseCase();
 
 let apmAgent: Agent = ApmServerProvider.start({ serviceName: 'mevo-challenge-api' });
 
+const childs: Map<number, ChildProcess> = new Map();
+
 const backgroundJob = (id: string, ip: string, filepath: string, batchSize: number) => {
     const child = fork("./dist/job.js");
-
+    childs.set(child.pid!, child);
     child.send({ id, ip, filepath, batchSize });
     child.on("message", (message: { type: string }) => {
         if (message.type === "done") {
@@ -73,52 +87,58 @@ const backgroundJob = (id: string, ip: string, filepath: string, batchSize: numb
           child.kill();
         }
     });
-    child.on("close", async () => {
-        console.log(`child process: ${child.pid} - closed`);
-    });
+    child.on("close", () => childs.delete(child.pid!));
 };
 
-const fileExtensionValidationMiddleware = (err: Error, _req: Request, res: Response, next: NextFunction) => {
-    if (err) {
-        return res.status(400).json({ error: 'Invalid file type' });
+const getLogJob = () => {
+    let child: ChildProcess;
+    let initialized = false;
+
+    return {
+        send: (id: string, type: "HTTP" | "JOB", resource: string, status: "ERROR" | "SUCCESS" | "PROCESSING" | "CLOSED", ip: string) => {
+            if (!initialized) {
+                initialized = true;
+                child = fork("./dist/logJob.js");
+                childs.set(child.pid!, child);
+                child.on("close", () => childs.delete(child.pid!));
+            }
+            child.send({ id, type, resource, status, ip });
+        },
+        stop: () => {
+            child.kill();
+        }
     }
+};
+
+const logJob = getLogJob();
+
+const fileExtensionValidationMiddleware = (err: Error, _req: Request, res: Response, next: NextFunction) => {
+    if (err) return res.status(400).json({ error: 'Invalid file type' });
     return next();
 }
 
-app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValidationMiddleware, async (req: Request, res: Response) => {
-    const transaction = apmAgent.startTransaction('POST:api/prescriptions/upload', 'request', { startTime: Date.now() });
+const childLimitMiddleware = async (_req: Request, _res: Response, next: NextFunction) => {
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    while (childs.size >= 21) await sleep(15);
+    return next();
+}
 
-    const createAuditLogUseCase = makeCreateAuditLogUseCase();
+app.post('/api/prescriptions/upload', childLimitMiddleware, upload.single('file'), fileExtensionValidationMiddleware, async (req: Request, res: Response) => {
+    const transaction = apmAgent.startTransaction('POST:api/prescriptions/upload', 'request', { startTime: Date.now() });
 
     if (!req.file) {
         transaction.end('error', Date.now());
-
-        await createAuditLogUseCase.execute({
-            id: crypto.randomUUID(),
-            type: 'HTTP',
-            resource: 'POST - /api/prescriptions/upload',
-            status: 'ERROR',
-            ip: req.ip?.toString() || 'unknown'
-        });
-
+        logJob.send(crypto.randomUUID(), 'HTTP', 'POST - /api/prescriptions/upload', 'ERROR', req.ip?.toString() || 'unknown');
         return res.status(400).json({ error: 'No file uploaded. Use field name "file".' });
     }
 
     const id = req.file.filename.replace('.csv', '');
-    const prepareForUploadUseCase = makePrepareForUploadUseCase();
+    const prepareForUploadUseCase = getPrepareForUploadUseCase();
     const response = await prepareForUploadUseCase.execute({ upload_id: id });
 
     backgroundJob(id, req.ip?.toString() || 'unknown', req.file.path, 4000);
-
+    logJob.send(crypto.randomUUID(), 'HTTP', 'POST - /api/prescriptions/upload', 'SUCCESS', req.ip?.toString() || 'unknown');
     transaction.end('success', Date.now());
-
-    await createAuditLogUseCase.execute({
-        id: crypto.randomUUID(),
-        type: 'HTTP',
-        resource: 'POST - /api/prescriptions/upload',
-        status: 'SUCCESS',
-        ip: req.ip?.toString() || 'unknown'
-    });
 
     return res.status(201).json(response);
 });
@@ -126,34 +146,17 @@ app.post('/api/prescriptions/upload', upload.single('file'), fileExtensionValida
 app.get('/api/prescriptions/upload/:id', async (req: Request, res: Response) => {
     const transaction = apmAgent.startTransaction('GET:api/prescriptions/upload/:id', 'request', { startTime: Date.now() });
 
-    const createAuditLogUseCase = makeCreateAuditLogUseCase();
-
     const { id } = req.params;
-    const retrieveUploadStatusUseCase = makeRetrieveUploadStatusUseCase();
+    const retrieveUploadStatusUseCase = getRetrieveUploadStatusUseCase();
     const response = await retrieveUploadStatusUseCase.execute({ upload_id: id });
     if (!response) {
         transaction.end('error', Date.now());
-
-        await createAuditLogUseCase.execute({
-            id: crypto.randomUUID(),
-            type: 'HTTP',
-            resource: 'GET - /api/prescriptions/upload/:id',
-            status: 'ERROR',
-            ip: req.ip?.toString() || 'unknown'
-        });
-
+        logJob.send(crypto.randomUUID(), 'HTTP', 'GET - /api/prescriptions/upload/:id', 'ERROR', req.ip?.toString() || 'unknown');
         return res.status(404).json({ error: `upload: ${id} - does not exists` });
     }
 
+    logJob.send(crypto.randomUUID(), 'HTTP', 'GET - /api/prescriptions/upload/:id', 'SUCCESS', req.ip?.toString() || 'unknown');
     transaction.end('success', Date.now());
-
-    await createAuditLogUseCase.execute({
-        id: crypto.randomUUID(),
-        type: 'HTTP',
-        resource: 'GET - /api/prescriptions/upload/:id',
-        status: 'SUCCESS',
-        ip: req.ip?.toString() || 'unknown'
-    });
 
     return res.status(200).json(response);
 });

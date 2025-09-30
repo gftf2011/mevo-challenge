@@ -11,7 +11,8 @@
     "start": "node dist/index.js",
     "pretest": "npm run docker:up",
     "test": "jest --coverage",
-    "posttest": "npm run docker:clear"
+    "posttest": "npm run docker:clear",
+    "perf:smoke": "k6 run perf/smoke.js"
   },
   "repository": {
     "type": "git",
